@@ -13,7 +13,7 @@ import (
 
 func ManualRegisterPetani(c *gin.Context) {
 	var requestBody struct {
-		FullName string `json:"name"`
+		FullName string `json:"full_name"`
 		Email    string `json:"email"`
         Phone string `json:"phone"`
         Password string `json:"password"`
@@ -43,7 +43,7 @@ func ManualRegisterPetani(c *gin.Context) {
 		Phone: string(requestBody.Phone),
 		PasswordHash: string(hashedpass),
 		Role: string("Petani"),
-
+		AuthProvider: string("Manual"),
 	}
 
 	if err := db.Create(&petani).Error; err != nil {
