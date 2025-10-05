@@ -23,6 +23,7 @@ go.work
 # IDE files
 .vscode/
 .idea/
+prompt.txt
 
 # Logs
 *.log
