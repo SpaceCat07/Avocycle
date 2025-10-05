@@ -6,7 +6,7 @@ import (
 
 type LogPenyakitTanaman struct {
 	gorm.Model
-	Kondisi    string `gorm:"type:enum('Parah','Sedang','Ringan','Sembuh');not null" json:"kondisi"`
+	Kondisi    string `gorm:"type:varchar(20);not null" json:"kondisi"`
 	Catatan    string `gorm:"type:text" json:"catatan"`
 	Foto       string `gorm:"type:varchar(255)" json:"foto"`
 	TanamanID  uint   `gorm:"not null;index" json:"tanaman_id"`

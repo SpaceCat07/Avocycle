@@ -6,5 +6,5 @@ import (
 
 type ProsesProduksi struct {
 	gorm.Model
-	Fase string `gorm:"enum('Berbunga', 'Berbuah', 'Panen');" json:"fase"`
+	Fase string `gorm:"type:varchar(50);not null" json:"fase"`
 }
