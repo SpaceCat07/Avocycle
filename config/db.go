@@ -1,11 +1,13 @@
 package config
 
 import (
-	"gorm.io/gorm"
-	"gorm.io/driver/postgres"
-	"os"
+	"Avocycle/models"
 	"fmt"
+	"os"
+
 	"github.com/joho/godotenv"
+	"gorm.io/driver/postgres"
+	"gorm.io/gorm"
 )
 
 func DbConnect() (*gorm.DB, error) {
@@ -30,7 +32,19 @@ func DbConnect() (*gorm.DB, error) {
 	}
 
     // ini untuk migrate nanti
-    // db.AutoMigrate()
+    db.AutoMigrate(
+		&models.User{},
+		&models.Kebun{},
+		&models.ProsesProduksi{},
+		&models.PerawatanPenyakit{},
+		&models.PenyakitTanaman{},
+		&models.Tanaman{},
+		&models.LogPenyakitTanaman{},
+		&models.Buah{},
+		&models.LogProsesProduksi{},
+		&models.Booking{},
+		&models.PersonalAccessTokens{},
+	)
 
 	return db, nil
 }
