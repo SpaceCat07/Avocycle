@@ -3,15 +3,19 @@ package main
 import (
 	"Avocycle/config"
 	"Avocycle/routes"
-	// "fmt"
 
+	"github.com/joho/godotenv"
+	// "fmt"
 	// "github.com/gin-gonic/gin"
 )
 
 func main() {
 	// ini untuk seeder nanti
 
+	// initialize gocial
+	config.InitGocial()
 
+	godotenv.Load()
 	// connect to postgres
 	postsql, err := config.DbConnect()
 	if err != nil {
