@@ -21,6 +21,14 @@ func InitRoutes() *gin.Engine {
 
 		api.GET("auth/:provider/pembeli", controllers.RedirectHandlerPembeli)
 		api.GET("auth/:provider/callback/pembeli", controllers.CallbackHandlerPembeli)
+
+		// CRUD Kebun
+		api.POST("/kebun", controllers.CreateKebun)
+		api.GET("/kebun", controllers.GetAllKebun)
+		api.GET("/kebun/:id", controllers.GetKebunByID)
+		api.PUT("/kebun/:id", controllers.UpdateKebun)
+		api.DELETE("/kebun/:id", controllers.DeleteKebun)
+
 	}
 
 	// cek ketersediaan api
