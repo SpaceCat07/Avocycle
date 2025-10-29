@@ -29,6 +29,13 @@ func InitRoutes() *gin.Engine {
 		api.PUT("/kebun/:id", controllers.UpdateKebun)
 		api.DELETE("/kebun/:id", controllers.DeleteKebun)
 
+		// CRUD Tanaman
+		api.POST("/tanaman", controllers.CreateTanaman)
+		api.GET("/tanaman", controllers.GetAllTanaman)
+		api.GET("/tanaman/:id", controllers.GetTanamanByID)
+		api.PUT("/tanaman/:id", controllers.UpdateTanaman)
+		api.DELETE("/tanaman/:id", controllers.DeleteTanaman)
+
 	}
 
 	// cek ketersediaan api
