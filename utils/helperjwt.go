@@ -49,7 +49,7 @@ func GenerateJWT(user *models.User) (string, error) {
 // ValidateJWT validates and parses JWT token
 func ValidateJWT(tokenString string) (*Claims, error) {
     // Check if JWT secret is set
-    if len(jwtSecretKey) == 0 {
+    if len(tokenString) == 0 {
         return nil, errors.New("JWT secret key is not set")
     }
 

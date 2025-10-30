@@ -25,7 +25,7 @@ func RoleMiddleware(allowedRoles ...string) gin.HandlerFunc {
 		// get the data from token
 		claims, err := utils.ValidateJWT(tokenString)
 		if err != nil {
-			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": "Invalid token"})
+			ctx.AbortWithStatusJSON(http.StatusUnauthorized, gin.H{"error": err.Error()})
 			return
 		}
 
