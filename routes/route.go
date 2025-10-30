@@ -2,6 +2,7 @@ package routes
 
 import (
 	"Avocycle/controllers"
+	"Avocycle/middleware"
 
 	"github.com/gin-gonic/gin"
 )
@@ -28,6 +29,13 @@ func InitRoutes() *gin.Engine {
 		api.GET("/kebun/:id", controllers.GetKebunByID)
 		api.PUT("/kebun/:id", controllers.UpdateKebun)
 		api.DELETE("/kebun/:id", controllers.DeleteKebun)
+
+		// CRUD Tanaman
+		api.POST("/tanaman", middleware.RoleMiddleware("Petani", "Admin"),controllers.CreateTanaman)
+		api.GET("/tanaman", controllers.GetAllTanaman)
+		api.GET("/tanaman/:id", controllers.GetTanamanByID)
+		api.PUT("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.UpdateTanaman)
+		api.DELETE("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.DeleteTanaman)
 
 	}
 
