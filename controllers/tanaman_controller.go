@@ -175,12 +175,18 @@ func CreateTanaman(c *gin.Context) {
 		KebunID:      input.KebunID,
 	}
 
-	if err := db.Create(&tanaman).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal menyimpan tanaman", err.Error())
-		return
-	}
+    if err := db.Create(&tanaman).Error; err != nil {
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal menyimpan tanaman", err.Error())
+        return
+    }
 
-	utils.SuccessResponse(c, http.StatusCreated, "Tanaman berhasil dibuat", tanaman)
+    // preload Kebun for response
+    if err := db.Preload("Kebun").First(&tanaman, tanaman.ID).Error; err != nil {
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal memuat relasi kebun", err.Error())
+        return
+    }
+
+    utils.SuccessResponse(c, http.StatusCreated, "Tanaman berhasil dibuat", tanaman)
 }
 
 // PUT /tanaman/:id
@@ -193,15 +199,15 @@ func UpdateTanaman(c *gin.Context) {
 
 	id := c.Param("id")
 
-	var tanaman models.Tanaman
-	if err := db.First(&tanaman, id).Preload("Kebun").Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusNotFound, "Tanaman tidak ditemukan", nil)
-			return
-		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil tanaman", err.Error())
-		return
-	}
+    var tanaman models.Tanaman
+    if err := db.Preload("Kebun").First(&tanaman, id).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            utils.ErrorResponse(c, http.StatusNotFound, "Tanaman tidak ditemukan", nil)
+            return
+        }
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil tanaman", err.Error())
+        return
+    }
 
 	// input struct lokal (pointer untuk partial update)
 	var input struct {
@@ -275,15 +281,15 @@ func DeleteTanaman(c *gin.Context) {
 
 	id := c.Param("id")
 
-	var tanaman models.Tanaman
-	if err := db.First(&tanaman, id).Preload("Kebun").Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusNotFound, "Tanaman tidak ditemukan", nil)
-			return
-		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil tanaman", err.Error())
-		return
-	}
+    var tanaman models.Tanaman
+    if err := db.Preload("Kebun").First(&tanaman, id).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            utils.ErrorResponse(c, http.StatusNotFound, "Tanaman tidak ditemukan", nil)
+            return
+        }
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil tanaman", err.Error())
+        return
+    }
 
 	if err := db.Delete(&tanaman).Error; err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal hapus tanaman", err.Error())
