@@ -44,6 +44,9 @@ func DbConnect() (*gorm.DB, error) {
 		&models.LogProsesProduksi{},
 		&models.Booking{},
 		&models.PersonalAccessTokens{},
+		&models.FaseBunga{},
+		&models.FaseBuah{},
+		&models.FasePanen{},
 	)
 
 	return db, nil
