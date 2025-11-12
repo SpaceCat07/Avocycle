@@ -34,6 +34,7 @@ func InitRoutes() *gin.Engine {
 		api.POST("/tanaman", middleware.RoleMiddleware("Petani", "Admin"),controllers.CreateTanaman)
 		api.GET("/tanaman", controllers.GetAllTanaman)
 		api.GET("/tanaman/:id", controllers.GetTanamanByID)
+		api.GET("/tanaman/:id_kebun", controllers.GetTanamanByKebunID)
 		api.PUT("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.UpdateTanaman)
 		api.DELETE("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.DeleteTanaman)
 
