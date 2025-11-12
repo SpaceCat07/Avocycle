@@ -12,4 +12,9 @@ type Tanaman struct {
 	TanggalTanam time.Time `gorm:"type:date;not null" json:"tanggal_tanam"`
 	KebunID      uint      `gorm:"not null;index" json:"kebun_id"`
 	Kebun        Kebun     `gorm:"foreignKey:KebunID;references:ID" json:"kebun"`
+	KodeBlok	 string    `gorm:"type:varchar(25);not null" json:"kode_blok"`
+	KodeTanaman  string    `gorm:"type:varchar(50);not null" json:"kode_tanaman"`
+	FotoTanaman  string    `gorm:"type:text" json:"foto_tanaman,omitempty"`
+	TanggalPanen *time.Time `gorm:"type:date" json:"tanggal_panen"`
+	MasaProduksi int	   `gorm:"not null" json:"masa_produksi"`
 }

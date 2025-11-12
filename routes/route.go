@@ -37,6 +37,17 @@ func InitRoutes() *gin.Engine {
 		api.PUT("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.UpdateTanaman)
 		api.DELETE("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.DeleteTanaman)
 
+		petaniRoutes := api.Group("/petani")
+		petaniRoutes.Use(middleware.RoleMiddleware("Petani"))
+		{
+			// CRUD Buah
+            petaniRoutes.POST("/buah", controllers.CreateBuah)
+            petaniRoutes.GET("/buah", controllers.GetAllBuah)
+            petaniRoutes.GET("/buah/:id", controllers.GetBuahByID)
+			petaniRoutes.GET("/buah/:id_kebun", controllers.GetBuahByKebun)
+            petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
+            petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
+		}
 	}
 
 	// cek ketersediaan api
