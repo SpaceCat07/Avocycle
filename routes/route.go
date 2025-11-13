@@ -24,20 +24,21 @@ func InitRoutes() *gin.Engine {
 		api.GET("auth/:provider/callback/pembeli", controllers.CallbackHandlerPembeli)
 
 		// CRUD Kebun
-		api.POST("/kebun", controllers.CreateKebun)
+		api.POST("/kebun", middleware.RoleMiddleware("Petani", "Admin"), controllers.CreateKebun)
 		api.GET("/kebun", controllers.GetAllKebun)
 		api.GET("/kebun/:id", controllers.GetKebunByID)
-		api.PUT("/kebun/:id", controllers.UpdateKebun)
-		api.DELETE("/kebun/:id", controllers.DeleteKebun)
+		api.PUT("/kebun/:id", middleware.RoleMiddleware("Petani", "Admin"), controllers.UpdateKebun)
+		api.DELETE("/kebun/:id", middleware.RoleMiddleware("Petani", "Admin"), controllers.DeleteKebun)
 
 		// CRUD Tanaman
 		api.POST("/tanaman", middleware.RoleMiddleware("Petani", "Admin"),controllers.CreateTanaman)
 		api.GET("/tanaman", controllers.GetAllTanaman)
 		api.GET("/tanaman/:id", controllers.GetTanamanByID)
-		api.GET("/tanaman/:id_kebun", controllers.GetTanamanByKebunID)
+		api.GET("/tanaman/kebun/:id_kebun", controllers.GetTanamanByKebunID)
 		api.PUT("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.UpdateTanaman)
 		api.DELETE("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.DeleteTanaman)
 
+		// middleware khusus petani
 		petaniRoutes := api.Group("/petani")
 		petaniRoutes.Use(middleware.RoleMiddleware("Petani"))
 		{
@@ -45,10 +46,24 @@ func InitRoutes() *gin.Engine {
             petaniRoutes.POST("/buah", controllers.CreateBuah)
             petaniRoutes.GET("/buah", controllers.GetAllBuah)
             petaniRoutes.GET("/buah/:id", controllers.GetBuahByID)
-			petaniRoutes.GET("/buah/:id_kebun", controllers.GetBuahByKebun)
+			petaniRoutes.GET("/buah/kebun/:id_kebun", controllers.GetBuahByKebun)
             petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
             petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
 		}
+
+		// middleware khusus Pembeli
+		pembeliRoutes := api.Group("/pembeli")
+		pembeliRoutes.Use(middleware.RoleMiddleware("Pembeli"))
+		{
+			// CRUD Booking
+			pembeliRoutes.POST("/booking", controllers.CreateBooking)
+			pembeliRoutes.GET("/booking", controllers.GetAllBooking)
+			pembeliRoutes.GET("/booking/:id", controllers.GetBookingByID)
+			pembeliRoutes.PUT("/booking/:id", controllers.UpdateBooking)
+			pembeliRoutes.DELETE("/booking/:id", controllers.DeleteBooking)
+			pembeliRoutes.GET("/booking/user/:user_id", controllers.GetBookingByUserID)
+		}
+
 	}
 
 	// cek ketersediaan api

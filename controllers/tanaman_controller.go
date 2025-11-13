@@ -373,39 +373,47 @@ func GetTanamanByKebunID(c *gin.Context) {
 	idKebun := c.Param("id_kebun")
 
 	db, err := config.DbConnect()
-    if err != nil {
-        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
-        return
-    }
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
+		return
+	}
 
-	// get pagination parameters
+	// pagination setup
 	page, perPage := utils.GetPagination(c)
 	offset := utils.GetOffset(page, perPage)
 
-	// count total rows
+	// hitung total tanaman di kebun ini
 	var totalRows int64
-	if err := db.Model(&models.Tanaman{}).Joins("Kebun").Where("tanaman.kebun_id = ?", idKebun).Count(&totalRows).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count buah data", err.Error())
+	if err := db.Model(&models.Tanaman{}).
+		Where("kebun_id = ?", idKebun).
+		Count(&totalRows).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count tanaman data", err.Error())
 		return
 	}
 
 	pagination := utils.CalculatePagination(page, perPage, totalRows)
-    if page > pagination.TotalPages && pagination.TotalPages > 0 {
-        utils.ErrorResponseWithData(c, http.StatusBadRequest,
-            fmt.Sprintf("Page %d out of range. Only %d pages are available", page, pagination.TotalPages),
-            nil,
-            "Page out of range",
-        )
-        return
-    }
+	if page > pagination.TotalPages && pagination.TotalPages > 0 {
+		utils.ErrorResponseWithData(
+			c,
+			http.StatusBadRequest,
+			fmt.Sprintf("Page %d out of range. Only %d pages are available", page, pagination.TotalPages),
+			nil,
+			"Page out of range",
+		)
+		return
+	}
 
+	// ambil data tanaman berdasarkan kebun_id
 	var tanamanList []models.Tanaman
-	if err := db.Model(&models.Tanaman{}).Joins("Kebun").Where("tanaman.kebun_id = ?", idKebun).
-        Preload("Tanaman").
-        Offset(offset).
-        Find(&tanamanList).Error ;err != nil {
-        utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrive tanaman data", err.Error())
-    }
+	if err := db.
+		Preload("Kebun").
+		Where("kebun_id = ?", idKebun).
+		Offset(offset).
+		Limit(perPage).
+		Find(&tanamanList).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve tanaman data", err.Error())
+		return
+	}
 
 	utils.SuccessResponseWithMeta(c, http.StatusOK, "Tanaman data retrieved successfully", tanamanList, pagination)
 }

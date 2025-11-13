@@ -44,7 +44,7 @@ func GetAllBuah(c *gin.Context){
 
 	// get paginated data
 	var buahList []models.Buah
-	if err := db.Preload("Tanaman").
+	if err := db.Preload("Tanaman.Kebun").
 		Limit(perPage).
 		Offset(offset).
 		Find(&buahList).Error; err != nil {
@@ -73,7 +73,7 @@ func GetBuahByID(c *gin.Context) {
     }
 
     var buah models.Buah
-    if err := db.Preload("Tanaman").First(&buah, id).Error; err != nil {
+    if err := db.Preload("Tanaman.Kebun").First(&buah, id).Error; err != nil {
         utils.ErrorResponse(c, http.StatusNotFound, "Buah not found", err.Error())
         return
     }
@@ -117,7 +117,7 @@ func CreateBuah(c *gin.Context) {
     }
 
     // Preload tanaman data
-    db.Preload("Tanaman").First(&buah, buah.ID)
+    db.Preload("Tanaman.Kebun").First(&buah, buah.ID)
 
     utils.SuccessResponse(c, http.StatusCreated, "Buah created successfully", buah)
 }
@@ -169,7 +169,7 @@ func UpdateBuah(c *gin.Context) {
     }
 
     // Preload tanaman data
-    db.Preload("Tanaman").First(&buah, buah.ID)
+    db.Preload("Tanaman.Kebun").First(&buah, buah.ID)
 
     utils.SuccessResponse(c, http.StatusOK, "Buah updated successfully", buah)
 }
@@ -202,9 +202,8 @@ func DeleteBuah(c *gin.Context) {
 func GetBuahByKebun(c *gin.Context) {
     idKebun := c.Param("id_kebun")
 
-    // get pagination parameters
-	page, perPage := utils.GetPagination(c)
-	offset := utils.GetOffset(page, perPage)
+    page, perPage := utils.GetPagination(c)
+    offset := utils.GetOffset(page, perPage)
 
     db, err := config.DbConnect()
     if err != nil {
@@ -212,16 +211,20 @@ func GetBuahByKebun(c *gin.Context) {
         return
     }
 
-    // count total rows
-	var totalRows int64
-	if err := db.Model(&models.Buah{}).Joins("Tanaman").Where("tanaman.kebun_id = ?", idKebun).Count(&totalRows).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count buah data", err.Error())
-		return
-	}
+    var totalRows int64
+    if err := db.Model(&models.Buah{}).
+        Joins("JOIN tanamen ON tanamen.id = buahs.tanaman_id").
+        Where("tanamen.kebun_id = ?", idKebun).
+        Count(&totalRows).Error; err != nil {
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count buah data", err.Error())
+        return
+    }
 
     pagination := utils.CalculatePagination(page, perPage, totalRows)
     if page > pagination.TotalPages && pagination.TotalPages > 0 {
-        utils.ErrorResponseWithData(c, http.StatusBadRequest,
+        utils.ErrorResponseWithData(
+            c,
+            http.StatusBadRequest,
             fmt.Sprintf("Page %d out of range. Only %d pages are available", page, pagination.TotalPages),
             nil,
             "Page out of range",
@@ -230,11 +233,15 @@ func GetBuahByKebun(c *gin.Context) {
     }
 
     var buahList []models.Buah
-    if err := db.Model(&models.Buah{}).Joins("Tanaman").Where("tanaman.kebun_id = ?", idKebun).
-        Preload("Tanaman").
+    if err := db.Model(&models.Buah{}).
+        Joins("JOIN tanamen ON tanamen.id = buahs.tanaman_id").
+        Where("tanamen.kebun_id = ?", idKebun).
+        Preload("Tanaman.Kebun").
         Offset(offset).
-        Find(&buahList).Error ;err != nil {
-        utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrive buah data", err.Error())
+        Limit(perPage).
+        Find(&buahList).Error; err != nil {
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve buah data", err.Error())
+        return
     }
 
     utils.SuccessResponseWithMeta(c, http.StatusOK, "Buah data retrieved successfully", buahList, pagination)
