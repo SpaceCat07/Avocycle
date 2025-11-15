@@ -103,13 +103,15 @@ func UpdatePenyakitTanaman(c *gin.Context) {
 
 
 	var input struct {
-		Deskripsi string `form:"deskripsi" json:"deskripsi"`
+		Deskripsi string `form:"deskripsi" json:"deskripsi" binding:"required,min=10,max=500"`
 	}
 
 	if err := c.ShouldBind(&input); err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, "Input tidak valid", err.Error())
         return
 	}
+
+	penyakitTanaman.Deskripsi = input.Deskripsi
 
 	if err := db.Save(&penyakitTanaman).Error; err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal update tanaman", err.Error())

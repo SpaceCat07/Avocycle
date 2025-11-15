@@ -9,6 +9,7 @@ import (
 	"io"
 	"net/http"
 	"os"
+	"path/filepath"
 	"strconv"
 	"strings"
 	"time"
@@ -18,9 +19,8 @@ import (
 	"github.com/gin-gonic/gin"
 	"github.com/google/generative-ai-go/genai"
 	"github.com/joho/godotenv"
-	"google.golang.org/api/option"
 	"golang.org/x/sync/errgroup"
-
+	"google.golang.org/api/option"
 )
 
 func ClassifyPenyakit(c *gin.Context) {
@@ -35,7 +35,7 @@ func ClassifyPenyakit(c *gin.Context) {
     }
 
 	// parse string into uint
-	tanamanId, err := strconv.ParseUint(idTanaman, 10, 64)
+	tanamanId, err := strconv.Atoi(idTanaman)
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, "ID tanaman tidak valid", err.Error())
         return
@@ -70,7 +70,23 @@ func ClassifyPenyakit(c *gin.Context) {
         utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal membaca file", err.Error())
         return
     }
-	contentType := file.Header.Get("Content-Type")
+
+	// Tentukan MIME type berdasarkan ekstensi file (abaikan header dari client)
+	ext := strings.ToLower(filepath.Ext(file.Filename))
+	var contentType string
+	switch ext {
+	case ".jpg", ".jpeg":
+		contentType = "image/jpeg"
+	case ".png":
+		contentType = "image/png"
+	case ".webp":
+		contentType = "image/webp"
+	case ".gif":
+		contentType = "image/gif"
+	default:
+		// fallback aman ke JPEG
+		contentType = "image/jpeg"
+	}
 
 	ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
 	defer cancel()
@@ -96,9 +112,15 @@ func ClassifyPenyakit(c *gin.Context) {
 
 	g.Go(
 		func() error {
-			model := client.GenerativeModel("gemini-1.5-flash")
+			model := client.GenerativeModel("gemini-2.5-flash")
+
+			part := genai.Blob{
+				MIMEType: contentType,
+				Data: imageBytes,
+			}
+
 			resp, err := model.GenerateContent(gctx,
-			genai.ImageData(contentType, imageBytes),
+			part,
 			genai.Text(`Analisis foto tanaman alpukat ini dan hasilkan JSON dengan format persis:
 {
   "nama_penyakit": "<nama penyakit atau 'Tidak terdeteksi'>",
