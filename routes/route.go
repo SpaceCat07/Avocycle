@@ -34,8 +34,14 @@ func InitRoutes() *gin.Engine {
 		api.POST("/tanaman", middleware.RoleMiddleware("Petani", "Admin"),controllers.CreateTanaman)
 		api.GET("/tanaman", controllers.GetAllTanaman)
 		api.GET("/tanaman/:id", controllers.GetTanamanByID)
+		api.GET("/tanaman/by-kebun/:id_kebun", controllers.GetTanamanByKebunID)
 		api.PUT("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.UpdateTanaman)
 		api.DELETE("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.DeleteTanaman)
+
+		// log penyakit tanaman
+		api.GET("/Log-Penyakit-Tanaman", controllers.GetAllLogPenyakit)
+		api.GET("/Log-Penyakit-Tanaman/:id", controllers.GetLogPenyakitById)
+		api.GET("/Log-Penyakit-Tanaman/Tanaman/:id_tanaman", controllers.GetLogPenyakitByTanamanId)
 
 		petaniRoutes := api.Group("/petani")
 		petaniRoutes.Use(middleware.RoleMiddleware("Petani"))
@@ -43,8 +49,8 @@ func InitRoutes() *gin.Engine {
 			// CRUD Buah
             petaniRoutes.POST("/buah", controllers.CreateBuah)
             petaniRoutes.GET("/buah", controllers.GetAllBuah)
-            petaniRoutes.GET("/buah/id/:id", controllers.GetBuahByID)
-			petaniRoutes.GET("/buah/kebun/:id_kebun", controllers.GetBuahByKebun)
+            petaniRoutes.GET("/buah/:id", controllers.GetBuahByID)
+			petaniRoutes.GET("/buah/by-tanaman/:id_kebun", controllers.GetBuahByKebun)
             petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
             petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
 
@@ -71,6 +77,13 @@ func InitRoutes() *gin.Engine {
 			petaniRoutes.PUT("/fase-panen/:id", controllers.UpdateFasePanen)
 			petaniRoutes.DELETE("/fase-panen/:id", controllers.DeleteFasePanen)
 			petaniRoutes.GET("/fase-panen/tanaman/:tanaman_id", controllers.GetFasePanenByTanaman)
+		}
+
+		petaniAdminRoutes := api.Group("/petamin")
+		petaniAdminRoutes.Use(middleware.RoleMiddleware("Petani", "Admin"))
+		{
+			// deteksi penyakit tanaman
+			petaniAdminRoutes.POST("/penyakit", controllers.ClassifyPenyakit)
 		}
 	}
 
