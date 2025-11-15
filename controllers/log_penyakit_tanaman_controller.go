@@ -49,6 +49,7 @@ func GetAllLogPenyakit(c *gin.Context) {
 		Preload("Penyakit").
 		Limit(perPage).
 		Offset(offset).
+		Order("created_at DESC").
 		Find(&logPenyakitList).Error; err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve log penyakit tanaman data", err.Error())
 		return

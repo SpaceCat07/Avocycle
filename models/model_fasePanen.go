@@ -14,6 +14,7 @@ type FasePanen struct {
 	BeratTotal         	float64    	`gorm:"type:decimal(10,2);default:0" json:"berat_total"` // Berat total (kg)
 	Catatan            	string     	`gorm:"type:text" json:"catatan,omitempty"`              // Catatan panen
 	FotoPanen          	string     	`gorm:"type:text" json:"foto_panen,omitempty"`           // Foto hasil panen (optional)
+	FotoPanenID			string		`gorm:"type:varchar(255)" json:"foto_panen_id,omitempty"`
 	TanamanID 			uint    	`gorm:"not null;index" json:"tanaman_id"`
 	Tanaman   			Tanaman 	`gorm:"foreignKey:TanamanID;references:ID" json:"tanaman"`
 }
