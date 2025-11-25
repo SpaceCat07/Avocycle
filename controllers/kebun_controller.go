@@ -16,6 +16,15 @@ import (
 // --- CONTROLLERS ---
 
 // GET /kebun
+// GetAllKebun godoc
+// @Summary      Ambil semua kebun
+// @Description  Mengambil daftar kebun dengan pagination (menggunakan meta pagination sesuai utils Pagination)
+// @Tags         Kebun
+// @Param        page      query   int     false  "Halaman"
+// @Param        per_page  query   int     false  "Jumlah data per halaman"
+// @Success      200  {object}  utils.Response  "Data kebun berhasil diambil"
+// @Failure      500  {object}  utils.Response
+// @Router       /kebun [get]
 func GetAllKebun(c *gin.Context) {
 	page, perPage := utils.GetPagination(c)
 	offset := utils.GetOffset(page, perPage)
@@ -58,6 +67,14 @@ func GetAllKebun(c *gin.Context) {
 	utils.SuccessResponseWithMeta(c, http.StatusOK, "Data kebun berhasil diambil", kebunList, pagination)
 }
 
+// GetKebunByID godoc
+// @Summary     Ambil detail kebun
+// @Description Mengambil detail kebun berdasarkan ID
+// @Tags        Kebun
+// @Param       id   path   int   true  "ID Kebun"
+// @Success     200  {object} utils.Response
+// @Failure     404  {object} utils.Response
+// @Router      /kebun/{id} [get]
 // GET /kebun/:id
 func GetKebunByID(c *gin.Context) {
 	id := c.Param("id")
@@ -82,6 +99,17 @@ func GetKebunByID(c *gin.Context) {
 }
 
 // POST /kebun
+// CreateKebun godoc
+// @Summary     Membuat kebun baru
+// @Description Membuat data kebun baru (response mengikuti utils.Response)
+// @Tags        Kebun
+// @Accept      json
+// @Produce     json
+// @Param       request  body   object{nama_kebun=string,mdpl=string}  true  "Input kebun"
+// @Security 	Bearer
+// @Success     201  {object} utils.Response
+// @Failure     400  {object} utils.Response
+// @Router      /kebun [post]
 func CreateKebun(c *gin.Context) {
 	db, err := config.DbConnect()
 	if err != nil {
@@ -119,6 +147,18 @@ func CreateKebun(c *gin.Context) {
 }
 
 // PUT /kebun/:id
+// UpdateKebun godoc
+// @Summary     Update kebun
+// @Description Mengupdate data kebun berdasarkan ID (partial update)
+// @Tags        Kebun
+// @Accept      json
+// @Produce     json
+// @Param       id       path   int  true  "ID Kebun"
+// @Param request body object{nama_kebun:string,mdpl:string} true "Input update"
+// @Security 	Bearer
+// @Success     200  {object} utils.Response
+// @Failure     404  {object} utils.Response
+// @Router      /kebun/{id} [put]
 func UpdateKebun(c *gin.Context) {
 	id := c.Param("id")
 
@@ -170,6 +210,15 @@ func UpdateKebun(c *gin.Context) {
 }
 
 // DELETE /kebun/:id
+// DeleteKebun godoc
+// @Summary     Hapus kebun
+// @Description Menghapus data kebun berdasarkan ID
+// @Tags        Kebun
+// @Param       id   path   int  true  "ID Kebun"
+// @Security 	Bearer
+// @Success     200  {object} utils.Response
+// @Failure     404  {object} utils.Response
+// @Router      /kebun/{id} [delete]
 func DeleteKebun(c *gin.Context) {
 	id := c.Param("id")
 

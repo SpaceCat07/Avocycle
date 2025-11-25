@@ -1,6 +1,9 @@
 package routes
 
 import (
+	_ "Avocycle/docs"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	swaggerFiles "github.com/swaggo/files"
 	"Avocycle/controllers"
 	"Avocycle/middleware"
 
@@ -9,6 +12,8 @@ import (
 
 func InitRoutes() *gin.Engine {
 	r := gin.Default()
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// url api v1
 	api := r.Group("/api/v1")

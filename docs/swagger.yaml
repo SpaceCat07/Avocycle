@@ -1,0 +1,160 @@
+basePath: /api/v1
+definitions:
+  utils.Response:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+      meta: {}
+      success:
+        type: boolean
+    type: object
+host: localhost:2005
+info:
+  contact: {}
+  description: Dokumentasi API Avocycle (Kebun CRUD, Pagination, dan Response Format)
+  title: Avocycle API
+  version: "1.0"
+paths:
+  /kebun:
+    get:
+      description: Mengambil daftar kebun dengan pagination (menggunakan meta pagination
+        sesuai utils Pagination)
+      parameters:
+      - description: Halaman
+        in: query
+        name: page
+        type: integer
+      - description: Jumlah data per halaman
+        in: query
+        name: per_page
+        type: integer
+      responses:
+        "200":
+          description: Data kebun berhasil diambil
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Ambil semua kebun
+      tags:
+      - Kebun
+    post:
+      consumes:
+      - application/json
+      description: Membuat data kebun baru (response mengikuti utils.Response)
+      parameters:
+      - description: Input kebun
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            mdpl:
+              type: string
+            nama_kebun:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Membuat kebun baru
+      tags:
+      - Kebun
+  /kebun/{id}:
+    delete:
+      description: Menghapus data kebun berdasarkan ID
+      parameters:
+      - description: ID Kebun
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Hapus kebun
+      tags:
+      - Kebun
+    get:
+      description: Mengambil detail kebun berdasarkan ID
+      parameters:
+      - description: ID Kebun
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Ambil detail kebun
+      tags:
+      - Kebun
+    put:
+      consumes:
+      - application/json
+      description: Mengupdate data kebun berdasarkan ID (partial update)
+      parameters:
+      - description: ID Kebun
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Input update
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Update kebun
+      tags:
+      - Kebun
+schemes:
+- http
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer <your-token>"
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"
