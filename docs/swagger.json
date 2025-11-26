@@ -216,6 +216,344 @@
                     }
                 }
             }
+        },
+        "/tanaman": {
+            "get": {
+                "description": "Mengambil daftar tanaman dengan pagination",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tanaman"
+                ],
+                "summary": "Ambil semua tanaman",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Halaman",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Jumlah data per halaman",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Menambahkan tanaman baru",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tanaman"
+                ],
+                "summary": "Tambah tanaman",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Nama Tanaman",
+                        "name": "nama_tanaman",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Varietas",
+                        "name": "varietas",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tanggal Tanam (YYYY-MM-DD)",
+                        "name": "tanggal_tanam",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID Kebun",
+                        "name": "kebun_id",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Kode Blok",
+                        "name": "kode_blok",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Kode Tanaman",
+                        "name": "kode_tanaman",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Masa Produksi",
+                        "name": "masa_produksi",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Foto Tanaman",
+                        "name": "foto_tanaman",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/tanaman/kebun/{id_kebun}": {
+            "get": {
+                "description": "Ambil data tanaman berdasarkan kebun_id",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tanaman"
+                ],
+                "summary": "Tanaman berdasarkan Kebun",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Kebun",
+                        "name": "id_kebun",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Halaman",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Jumlah per halaman",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/tanaman/{id}": {
+            "get": {
+                "description": "Mendapatkan detail tanaman berdasarkan ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tanaman"
+                ],
+                "summary": "Detail tanaman",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Tanaman",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Mengubah data tanaman (bisa sebagian)",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tanaman"
+                ],
+                "summary": "Update tanaman",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Tanaman",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "Nama Tanaman",
+                        "name": "nama_tanaman",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Varietas",
+                        "name": "varietas",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Tanggal Tanam",
+                        "name": "tanggal_tanam",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID Kebun",
+                        "name": "kebun_id",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Kode Blok",
+                        "name": "kode_blok",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Kode Tanaman",
+                        "name": "kode_tanaman",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Masa Produksi",
+                        "name": "masa_produksi",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Foto Tanaman",
+                        "name": "foto_tanaman",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Menghapus tanaman berdasarkan ID",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Tanaman"
+                ],
+                "summary": "Hapus tanaman",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Tanaman",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
         }
     },
     "definitions": {

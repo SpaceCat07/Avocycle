@@ -55,6 +55,15 @@ func ensureKebunExists(db *gorm.DB, kebunID uint) *string {
 }
 
 // --- controller ---
+// @Summary Ambil semua tanaman
+// @Description Mengambil daftar tanaman dengan pagination
+// @Tags Tanaman
+// @Produce json
+// @Param page query int false "Halaman"
+// @Param per_page query int false "Jumlah data per halaman"
+// @Success 200 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /tanaman [get]
 func GetAllTanaman(c *gin.Context) {
 	// get pagination parameters
 	page, perPage := utils.GetPagination(c)
@@ -107,6 +116,14 @@ func GetAllTanaman(c *gin.Context) {
 }
 
 // GET /tanaman/:id
+// @Summary Detail tanaman
+// @Description Mendapatkan detail tanaman berdasarkan ID
+// @Tags Tanaman
+// @Produce json
+// @Param id path int true "ID Tanaman"
+// @Success 200 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /tanaman/{id} [get]
 func GetTanamanByID(c *gin.Context) {
 	id := c.Param("id")
 
@@ -129,7 +146,24 @@ func GetTanamanByID(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "Detail tanaman", tanaman)
 }
 
-// POST /tanaman
+// POST /
+// @Summary Tambah tanaman
+// @Description Menambahkan tanaman baru
+// @Tags Tanaman
+// @Accept multipart/form-data
+// @Produce json
+// @Param nama_tanaman formData string true "Nama Tanaman"
+// @Param varietas formData string true "Varietas"
+// @Param tanggal_tanam formData string true "Tanggal Tanam (YYYY-MM-DD)"
+// @Param kebun_id formData int true "ID Kebun"
+// @Param kode_blok formData string true "Kode Blok"
+// @Param kode_tanaman formData string true "Kode Tanaman"
+// @Param masa_produksi formData int true "Masa Produksi"
+// @Param foto_tanaman formData file false "Foto Tanaman"
+// @Security 	Bearer
+// @Success 201 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Router /tanaman [post]
 func CreateTanaman(c *gin.Context) {
 	db, err := config.DbConnect()
 	if err != nil {
@@ -139,18 +173,18 @@ func CreateTanaman(c *gin.Context) {
 
 	// input struct lokal (tanpa DTO terpisah)
 	var input struct {
-		NamaTanaman  string `json:"nama_tanaman" binding:"required"`
-		Varietas     string `json:"varietas" binding:"required"`
-		TanggalTanam string `json:"tanggal_tanam" binding:"required"` // YYYY-MM-DD
-		KebunID      uint   `json:"kebun_id" binding:"required"`
-		KodeBlok 	 string `json:"kode_blok" binding:"required"`
-		KodeTanaman	 string `json:"kode_tanaman" binding:"required"`
+		NamaTanaman  string `form:"nama_tanaman" binding:"required"`
+		Varietas     string `form:"varietas" binding:"required"`
+		TanggalTanam string `form:"tanggal_tanam" binding:"required"` // YYYY-MM-DD
+		KebunID      uint   `form:"kebun_id" binding:"required"`
+		KodeBlok 	 string `form:"kode_blok" binding:"required"`
+		KodeTanaman	 string `form:"kode_tanaman" binding:"required"`
 		FotoTanaman  *multipart.FileHeader `form:"foto_tanaman"`
-		MasaProduksi int	`json:"masa_produksi" binding:"required"`
+		MasaProduksi int	`form:"masa_produksi" binding:"required"`
 	}
 
 	// 1) bind JSON
-	if err := c.ShouldBindJSON(&input); err != nil {
+	if err := c.ShouldBind(&input); err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
 	}
@@ -209,6 +243,24 @@ func CreateTanaman(c *gin.Context) {
 }
 
 // PUT /tanaman/:id
+// @Summary Update tanaman
+// @Description Mengubah data tanaman (bisa sebagian)
+// @Tags Tanaman
+// @Accept multipart/form-data
+// @Produce json
+// @Param id path int true "ID Tanaman"
+// @Param nama_tanaman formData string false "Nama Tanaman"
+// @Param varietas formData string false "Varietas"
+// @Param tanggal_tanam formData string false "Tanggal Tanam"
+// @Param kebun_id formData int false "ID Kebun"
+// @Param kode_blok formData string false "Kode Blok"
+// @Param kode_tanaman formData string false "Kode Tanaman"
+// @Param masa_produksi formData int false "Masa Produksi"
+// @Param foto_tanaman formData file false "Foto Tanaman"
+// @Security 	Bearer
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Router /tanaman/{id} [put]
 func UpdateTanaman(c *gin.Context) {
     db, err := config.DbConnect()
     if err != nil {
@@ -335,6 +387,15 @@ func UpdateTanaman(c *gin.Context) {
 }
 
 // DELETE /tanaman/:id
+// @Summary Hapus tanaman
+// @Description Menghapus tanaman berdasarkan ID
+// @Tags Tanaman
+// @Produce json
+// @Param id path int true "ID Tanaman"
+// @Security 	Bearer
+// @Success 200 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /tanaman/{id} [delete]
 func DeleteTanaman(c *gin.Context) {
     db, err := config.DbConnect()
     if err != nil {
@@ -369,6 +430,16 @@ func DeleteTanaman(c *gin.Context) {
     utils.SuccessResponse(c, http.StatusOK, "Tanaman berhasil dihapus", utils.EmptyObj{})
 }
 
+// @Summary Tanaman berdasarkan Kebun
+// @Description Ambil data tanaman berdasarkan kebun_id
+// @Tags Tanaman
+// @Produce json
+// @Param id_kebun path int true "ID Kebun"
+// @Param page query int false "Halaman"
+// @Param per_page query int false "Jumlah per halaman"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Router /tanaman/kebun/{id_kebun} [get]
 func GetTanamanByKebunID(c *gin.Context) {
 	idKebun := c.Param("id_kebun")
 

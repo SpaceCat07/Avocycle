@@ -149,6 +149,228 @@ paths:
       summary: Update kebun
       tags:
       - Kebun
+  /tanaman:
+    get:
+      description: Mengambil daftar tanaman dengan pagination
+      parameters:
+      - description: Halaman
+        in: query
+        name: page
+        type: integer
+      - description: Jumlah data per halaman
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Ambil semua tanaman
+      tags:
+      - Tanaman
+    post:
+      consumes:
+      - multipart/form-data
+      description: Menambahkan tanaman baru
+      parameters:
+      - description: Nama Tanaman
+        in: formData
+        name: nama_tanaman
+        required: true
+        type: string
+      - description: Varietas
+        in: formData
+        name: varietas
+        required: true
+        type: string
+      - description: Tanggal Tanam (YYYY-MM-DD)
+        in: formData
+        name: tanggal_tanam
+        required: true
+        type: string
+      - description: ID Kebun
+        in: formData
+        name: kebun_id
+        required: true
+        type: integer
+      - description: Kode Blok
+        in: formData
+        name: kode_blok
+        required: true
+        type: string
+      - description: Kode Tanaman
+        in: formData
+        name: kode_tanaman
+        required: true
+        type: string
+      - description: Masa Produksi
+        in: formData
+        name: masa_produksi
+        required: true
+        type: integer
+      - description: Foto Tanaman
+        in: formData
+        name: foto_tanaman
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Tambah tanaman
+      tags:
+      - Tanaman
+  /tanaman/{id}:
+    delete:
+      description: Menghapus tanaman berdasarkan ID
+      parameters:
+      - description: ID Tanaman
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Hapus tanaman
+      tags:
+      - Tanaman
+    get:
+      description: Mendapatkan detail tanaman berdasarkan ID
+      parameters:
+      - description: ID Tanaman
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Detail tanaman
+      tags:
+      - Tanaman
+    put:
+      consumes:
+      - multipart/form-data
+      description: Mengubah data tanaman (bisa sebagian)
+      parameters:
+      - description: ID Tanaman
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Nama Tanaman
+        in: formData
+        name: nama_tanaman
+        type: string
+      - description: Varietas
+        in: formData
+        name: varietas
+        type: string
+      - description: Tanggal Tanam
+        in: formData
+        name: tanggal_tanam
+        type: string
+      - description: ID Kebun
+        in: formData
+        name: kebun_id
+        type: integer
+      - description: Kode Blok
+        in: formData
+        name: kode_blok
+        type: string
+      - description: Kode Tanaman
+        in: formData
+        name: kode_tanaman
+        type: string
+      - description: Masa Produksi
+        in: formData
+        name: masa_produksi
+        type: integer
+      - description: Foto Tanaman
+        in: formData
+        name: foto_tanaman
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Update tanaman
+      tags:
+      - Tanaman
+  /tanaman/kebun/{id_kebun}:
+    get:
+      description: Ambil data tanaman berdasarkan kebun_id
+      parameters:
+      - description: ID Kebun
+        in: path
+        name: id_kebun
+        required: true
+        type: integer
+      - description: Halaman
+        in: query
+        name: page
+        type: integer
+      - description: Jumlah per halaman
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Tanaman berdasarkan Kebun
+      tags:
+      - Tanaman
 schemes:
 - http
 securityDefinitions:
