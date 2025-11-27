@@ -1,5 +1,29 @@
 basePath: /api/v1
 definitions:
+  controllers.LoginRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      password:
+        example: secret123
+        type: string
+    type: object
+  controllers.RegisterRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      full_name:
+        example: John Doe
+        type: string
+      password:
+        example: secret123
+        type: string
+      phone:
+        example: "08123456789"
+        type: string
+    type: object
   utils.Response:
     properties:
       data: {}
@@ -149,6 +173,39 @@ paths:
       summary: Update kebun
       tags:
       - Kebun
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login user menggunakan email dan password
+      parameters:
+      - description: Login credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login success with JWT
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Wrong credentials
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login user
+      tags:
+      - Auth
   /petani/buah:
     get:
       description: Retrieve paginated list of buah
@@ -352,6 +409,72 @@ paths:
       summary: Get buah by kebun ID with pagination
       tags:
       - Buah
+  /register/pembeli:
+    post:
+      consumes:
+      - application/json
+      description: Register pembeli menggunakan credential lokal
+      parameters:
+      - description: Register Pembeli
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Registered successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Email or phone already exists
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register Pembeli
+      tags:
+      - Auth
+  /register/petani:
+    post:
+      consumes:
+      - application/json
+      description: Register petani menggunakan credential lokal
+      parameters:
+      - description: Register Petani
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Registered successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Email or phone already exists
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register Petani
+      tags:
+      - Auth
   /tanaman:
     get:
       description: Mengambil daftar tanaman dengan pagination
