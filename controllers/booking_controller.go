@@ -14,10 +14,27 @@ import (
 	"Avocycle/utils"
 )
 
+// BookingRequest digunakan hanya untuk Swagger (body POST)
+type BookingRequest struct {
+    UserID    uint `json:"user_id" example:"1"`
+    TanamanID uint `json:"tanaman_id" example:"10"`
+}
+
 // --- mutex global untuk menghindari race condition ---
 var bookingMutex sync.Mutex
 
-// GET /booking
+// GetAllBooking godoc
+// @Summary Get all booking with pagination
+// @Description Retrieve paginated list of booking (hanya untuk role Pembeli)
+// @Tags Booking
+// @Security Bearer
+// @Produce json
+// @Param page query int false "Page number"
+// @Param per_page query int false "Items per page"
+// @Success 200 {object} utils.Response{data=[]models.SwaggerBooking,meta=utils.Pagination}
+// @Failure 400 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /pembeli/booking [get]
 func GetAllBooking(c *gin.Context) {
 	page, perPage := utils.GetPagination(c)
 	offset := utils.GetOffset(page, perPage)
@@ -59,7 +76,17 @@ func GetAllBooking(c *gin.Context) {
 	utils.SuccessResponseWithMeta(c, http.StatusOK, "Data booking berhasil diambil", bookingList, pagination)
 }
 
-// GET /booking/:id
+// GetBookingByID godoc
+// @Summary Get booking by ID
+// @Description Retrieve detail booking by ID (role Pembeli)
+// @Tags Booking
+// @Security Bearer
+// @Produce json
+// @Param id path int true "Booking ID"
+// @Success 200 {object} utils.Response{data=models.SwaggerBooking}
+// @Failure 404 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /pembeli/booking/{id} [get]
 func GetBookingByID(c *gin.Context) {
 	id := c.Param("id")
 
@@ -82,7 +109,18 @@ func GetBookingByID(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "Detail booking berhasil diambil", booking)
 }
 
-// POST /booking
+// CreateBooking godoc
+// @Summary Create a new booking
+// @Description Booking action by pembeli
+// @Tags Booking
+// @Security Bearer
+// @Accept json
+// @Produce json
+// @Param booking body controllers.BookingRequest true "Booking input"
+// @Success 201 {object} utils.Response{data=models.SwaggerBooking}
+// @Failure 400 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /pembeli/booking [post]
 func CreateBooking(c *gin.Context) {
 	bookingMutex.Lock()         // --- mulai critical section ---
 	defer bookingMutex.Unlock() // --- akhiri critical section ---
@@ -114,6 +152,12 @@ func CreateBooking(c *gin.Context) {
 		return
 	}
 
+	// Cek role user harus Pembeli
+	if user.Role != "Pembeli" {
+		utils.ErrorResponse(c, http.StatusForbidden, "Hanya user dengan role Pembeli yang bisa membuat booking", input.UserID)
+		return
+	}
+
 	// Validasi tanaman
 	var tanaman models.Tanaman
 	if err := db.First(&tanaman, input.TanamanID).Error; err != nil {
@@ -142,10 +186,31 @@ func CreateBooking(c *gin.Context) {
 		return
 	}
 
-	utils.SuccessResponse(c, http.StatusCreated, "Booking berhasil dibuat", newBooking)
+	// Ambil ulang booking lengkap dengan relasi
+	var result models.Booking
+	if err := db.Preload("User").Preload("Tanaman.Kebun").
+		First(&result, newBooking.ID).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal memuat detail booking", err.Error())
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusCreated, "Booking berhasil dibuat", result)
 }
 
-// PUT /booking/:id
+// UpdateBooking godoc
+// @Summary Update existing booking
+// @Description Update booking by ID (role Pembeli)
+// @Tags Booking
+// @Security Bearer
+// @Accept json
+// @Produce json
+// @Param id path int true "Booking ID"
+// @Param booking body controllers.BookingRequest true "Booking input"
+// @Success 200 {object} utils.Response{data=models.SwaggerBooking}
+// @Failure 400 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /pembeli/booking/{id} [put]
 func UpdateBooking(c *gin.Context) {
 	id := c.Param("id")
 
@@ -217,10 +282,26 @@ func UpdateBooking(c *gin.Context) {
 		return
 	}
 
+	// Reload booking terbaru beserta relasi
+	if err := db.Preload("User").Preload("Tanaman").First(&booking, id).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil data booking terbaru", err.Error())
+		return
+	}
+
 	utils.SuccessResponse(c, http.StatusOK, "Booking berhasil diperbarui", booking)
 }
 
-// DELETE /booking/:id
+// DeleteBooking godoc
+// @Summary Delete booking by ID
+// @Description Delete action for booking (role Pembeli)
+// @Tags Booking
+// @Security Bearer
+// @Produce json
+// @Param id path int true "Booking ID"
+// @Success 200 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /pembeli/booking/{id} [delete]
 func DeleteBooking(c *gin.Context) {
 	id := c.Param("id")
 
@@ -231,7 +312,7 @@ func DeleteBooking(c *gin.Context) {
 	}
 
 	var booking models.Booking
-	if err := db.First(&booking, id).Error; err != nil {
+	if err := db.Preload("User").Preload("Tanaman").First(&booking, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
 			utils.ErrorResponse(c, http.StatusNotFound, "Booking tidak ditemukan", nil)
 			return
@@ -248,7 +329,19 @@ func DeleteBooking(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "Booking berhasil dihapus", utils.EmptyObj{})
 }
 
-// GET /booking/user/:user_id
+// GetBookingByUserID godoc
+// @Summary Get booking list by user ID
+// @Description Retrieve user's booking list with pagination
+// @Tags Booking
+// @Security Bearer
+// @Produce json
+// @Param user_id path int true "User ID"
+// @Param page query int false "Page number"
+// @Param per_page query int false "Items per page"
+// @Success 200 {object} utils.Response{data=[]models.SwaggerBooking,meta=utils.Pagination}
+// @Failure 400 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /pembeli/booking/user/{user_id} [get]
 func GetBookingByUserID(c *gin.Context) {
 	userID := c.Param("user_id")
 	uid, err := strconv.Atoi(userID)

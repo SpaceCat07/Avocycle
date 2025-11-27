@@ -1,5 +1,14 @@
 basePath: /api/v1
 definitions:
+  controllers.BookingRequest:
+    properties:
+      tanaman_id:
+        example: 10
+        type: integer
+      user_id:
+        example: 1
+        type: integer
+    type: object
   controllers.LoginRequest:
     properties:
       email:
@@ -23,6 +32,91 @@ definitions:
       phone:
         example: "08123456789"
         type: string
+    type: object
+  models.SwaggerBooking:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
+      tanaman:
+        $ref: '#/definitions/models.SwaggerTanaman'
+      tanaman_id:
+        type: integer
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.SwaggerUser'
+      user_id:
+        type: integer
+    type: object
+  models.SwaggerKebun:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
+      lokasi:
+        type: string
+      nama:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.SwaggerTanaman:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      harga:
+        type: integer
+      id:
+        type: integer
+      kebun:
+        $ref: '#/definitions/models.SwaggerKebun'
+      kebun_id:
+        type: integer
+      nama:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.SwaggerUser:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  utils.Pagination:
+    properties:
+      has_next:
+        type: boolean
+      has_prev:
+        type: boolean
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total_pages:
+        type: integer
+      total_rows:
+        type: integer
     type: object
   utils.Response:
     properties:
@@ -206,6 +300,236 @@ paths:
       summary: Login user
       tags:
       - Auth
+  /pembeli/booking:
+    get:
+      description: Retrieve paginated list of booking (hanya untuk role Pembeli)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.SwaggerBooking'
+                  type: array
+                meta:
+                  $ref: '#/definitions/utils.Pagination'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get all booking with pagination
+      tags:
+      - Booking
+    post:
+      consumes:
+      - application/json
+      description: Booking action by pembeli
+      parameters:
+      - description: Booking input
+        in: body
+        name: booking
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.BookingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.SwaggerBooking'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Create a new booking
+      tags:
+      - Booking
+  /pembeli/booking/{id}:
+    delete:
+      description: Delete action for booking (role Pembeli)
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Delete booking by ID
+      tags:
+      - Booking
+    get:
+      description: Retrieve detail booking by ID (role Pembeli)
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.SwaggerBooking'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get booking by ID
+      tags:
+      - Booking
+    put:
+      consumes:
+      - application/json
+      description: Update booking by ID (role Pembeli)
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Booking input
+        in: body
+        name: booking
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.BookingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.SwaggerBooking'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Update existing booking
+      tags:
+      - Booking
+  /pembeli/booking/user/{user_id}:
+    get:
+      description: Retrieve user's booking list with pagination
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.SwaggerBooking'
+                  type: array
+                meta:
+                  $ref: '#/definitions/utils.Pagination'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get booking list by user ID
+      tags:
+      - Booking
   /petani/buah:
     get:
       description: Retrieve paginated list of buah
