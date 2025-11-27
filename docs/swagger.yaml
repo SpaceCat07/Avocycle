@@ -13,7 +13,7 @@ definitions:
 host: localhost:2005
 info:
   contact: {}
-  description: Dokumentasi API Avocycle (Kebun CRUD, Pagination, dan Response Format)
+  description: Dokumentasi API Avocycle (CRUD, Pagination, dan Response Format)
   title: Avocycle API
   version: "1.0"
 paths:
@@ -149,6 +149,209 @@ paths:
       summary: Update kebun
       tags:
       - Kebun
+  /petani/buah:
+    get:
+      description: Retrieve paginated list of buah
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get all buah with pagination
+      tags:
+      - Buah
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Buah Data
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            nama_buah:
+              type: string
+            tanaman_id:
+              type: integer
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Create a new buah
+      tags:
+      - Buah
+  /petani/buah/{id}:
+    delete:
+      parameters:
+      - description: Buah ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Delete buah
+      tags:
+      - Buah
+    get:
+      parameters:
+      - description: Buah ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get buah by ID
+      tags:
+      - Buah
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Buah ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated Buah Data
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            nama_buah:
+              type: string
+            tanaman_id:
+              type: integer
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Update buah
+      tags:
+      - Buah
+  /petani/buah/kebun/{id_kebun}:
+    get:
+      description: Retrieve buah based on related tanaman kebun
+      parameters:
+      - description: Kebun ID
+        in: path
+        name: id_kebun
+        required: true
+        type: integer
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get buah by kebun ID with pagination
+      tags:
+      - Buah
   /tanaman:
     get:
       description: Mengambil daftar tanaman dengan pagination

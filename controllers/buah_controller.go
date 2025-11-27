@@ -10,6 +10,18 @@ import (
 	"github.com/gin-gonic/gin"
 )
 
+// GetAllBuah godoc
+// @Summary Get all buah with pagination
+// @Description Retrieve paginated list of buah
+// @Tags Buah
+// @Security Bearer
+// @Produce json
+// @Param page query int false "Page number"
+// @Param per_page query int false "Items per page"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /petani/buah [get]
 func GetAllBuah(c *gin.Context){
 	// get pagination parameters
 	page, perPage := utils.GetPagination(c)
@@ -63,6 +75,16 @@ func GetAllBuah(c *gin.Context){
 
 }
 
+// GetBuahByID godoc
+// @Summary Get buah by ID
+// @Tags Buah
+// @Security Bearer
+// @Produce json
+// @Param id path int true "Buah ID"
+// @Success 200 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /petani/buah/{id} [get]
 func GetBuahByID(c *gin.Context) {
     id := c.Param("id")
 
@@ -81,6 +103,17 @@ func GetBuahByID(c *gin.Context) {
     utils.SuccessResponse(c, http.StatusOK, "Buah retrieved successfully", buah)
 }
 
+// CreateBuah godoc
+// @Summary Create a new buah
+// @Tags Buah
+// @Security Bearer
+// @Accept json
+// @Produce json
+// @Param request body object{nama_buah=string,tanaman_id=int} true "Buah Data"
+// @Success 201 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /petani/buah [post]
 func CreateBuah(c *gin.Context) {
     var requestBody struct {
         NamaBuah  string `json:"nama_buah" binding:"required"`
@@ -117,11 +150,24 @@ func CreateBuah(c *gin.Context) {
     }
 
     // Preload tanaman data
-    db.Preload("Tanaman.Kebun").First(&buah, buah.ID)
+    db.Preload("Tanaman").First(&buah, buah.ID)
 
     utils.SuccessResponse(c, http.StatusCreated, "Buah created successfully", buah)
 }
 
+// UpdateBuah godoc
+// @Summary Update buah
+// @Tags Buah
+// @Security Bearer
+// @Accept json
+// @Produce json
+// @Param id path int true "Buah ID"
+// @Param request body object{nama_buah=string,tanaman_id=integer} true "Updated Buah Data"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /petani/buah/{id} [put]
 func UpdateBuah(c *gin.Context) {
     id := c.Param("id")
 
@@ -174,6 +220,16 @@ func UpdateBuah(c *gin.Context) {
     utils.SuccessResponse(c, http.StatusOK, "Buah updated successfully", buah)
 }
 
+// DeleteBuah godoc
+// @Summary Delete buah
+// @Tags Buah
+// @Security Bearer
+// @Produce json
+// @Param id path int true "Buah ID"
+// @Success 200 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /petani/buah/{id} [delete]
 func DeleteBuah(c *gin.Context) {
     id := c.Param("id")
 
@@ -199,9 +255,23 @@ func DeleteBuah(c *gin.Context) {
     utils.SuccessResponse(c, http.StatusOK, "Buah deleted successfully", utils.EmptyObj{})
 }
 
+// GetBuahByKebun godoc
+// @Summary Get buah by kebun ID with pagination
+// @Description Retrieve buah based on related tanaman kebun
+// @Tags Buah
+// @Security Bearer
+// @Produce json
+// @Param id_kebun path int true "Kebun ID"
+// @Param page query int false "Page number"
+// @Param per_page query int false "Items per page"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /petani/buah/kebun/{id_kebun} [get]
 func GetBuahByKebun(c *gin.Context) {
     idKebun := c.Param("id_kebun")
 
+    // Mendapatkan parameter paginasi
     page, perPage := utils.GetPagination(c)
     offset := utils.GetOffset(page, perPage)
 
@@ -211,20 +281,36 @@ func GetBuahByKebun(c *gin.Context) {
         return
     }
 
-    var totalRows int64
-    if err := db.Model(&models.Buah{}).
-        Joins("JOIN tanamen ON tanamen.id = buahs.tanaman_id").
-        Where("tanamen.kebun_id = ?", idKebun).
-        Count(&totalRows).Error; err != nil {
-        utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count buah data", err.Error())
+    // 1. Cari semua ID Tanaman yang terkait dengan Kebun ID ini
+    var tanamanIDs []uint
+    // Menggunakan Pluck untuk mendapatkan daftar ID tanaman
+    if err := db.Model(&models.Tanaman{}).
+        Where("kebun_id = ?", idKebun).
+        Pluck("id", &tanamanIDs).Error; err != nil {
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve related Tanaman IDs", err.Error())
         return
     }
 
+    // 2. Hitung total Buah berdasarkan ID Tanaman yang ditemukan
+    var totalRows int64
+    if len(tanamanIDs) == 0 {
+        totalRows = 0 // Jika tidak ada tanaman, maka tidak ada buah
+    } else {
+        if err := db.Model(&models.Buah{}).
+            // Filter Buah di mana tanaman_id ada di daftar tanamanIDs
+            Where("tanaman_id IN (?)", tanamanIDs).
+            Count(&totalRows).Error; err != nil {
+            utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count buah data", err.Error())
+            return
+        }
+    }
+    
+    // Perhitungan paginasi
     pagination := utils.CalculatePagination(page, perPage, totalRows)
+    
+    // Validasi rentang halaman
     if page > pagination.TotalPages && pagination.TotalPages > 0 {
-        utils.ErrorResponseWithData(
-            c,
-            http.StatusBadRequest,
+        utils.ErrorResponseWithData(c, http.StatusBadRequest,
             fmt.Sprintf("Page %d out of range. Only %d pages are available", page, pagination.TotalPages),
             nil,
             "Page out of range",
@@ -232,15 +318,23 @@ func GetBuahByKebun(c *gin.Context) {
         return
     }
 
+    // 3. Ambil data Buah yang dipaginasi
     var buahList []models.Buah
-    if err := db.Model(&models.Buah{}).
-        Joins("JOIN tanamen ON tanamen.id = buahs.tanaman_id").
-        Where("tanamen.kebun_id = ?", idKebun).
-        Preload("Tanaman.Kebun").
-        Offset(offset).
-        Limit(perPage).
-        Find(&buahList).Error; err != nil {
-        utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve buah data", err.Error())
+    if totalRows > 0 {
+        if err := db.Preload("Tanaman.Kebun").
+            // Filter lagi menggunakan ID Tanaman
+            Where("tanaman_id IN (?)", tanamanIDs).
+            Limit(perPage).
+            Offset(offset).
+            Find(&buahList).Error ;err != nil {
+            utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve buah data", err.Error())
+            return
+        }
+    }
+    
+    // Penanganan data kosong
+    if totalRows == 0 {
+        utils.SuccessResponseWithMeta(c, http.StatusOK, "No buah data found for this kebun", []models.Buah{}, pagination)
         return
     }
 

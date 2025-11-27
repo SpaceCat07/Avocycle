@@ -43,6 +43,11 @@ func InitRoutes() *gin.Engine {
 		api.PUT("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.UpdateTanaman)
 		api.DELETE("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.DeleteTanaman)
 
+		// log penyakit tanaman
+		api.GET("/Log-Penyakit-Tanaman", controllers.GetAllLogPenyakit)
+		api.GET("/Log-Penyakit-Tanaman/:id", controllers.GetLogPenyakitById)
+		api.GET("/Log-Penyakit-Tanaman/Tanaman/:id_tanaman", controllers.GetLogPenyakitByTanamanId)
+
 		// middleware khusus petani
 		petaniRoutes := api.Group("/petani")
 		petaniRoutes.Use(middleware.RoleMiddleware("Petani"))
@@ -54,6 +59,13 @@ func InitRoutes() *gin.Engine {
 			petaniRoutes.GET("/buah/kebun/:id_kebun", controllers.GetBuahByKebun)
             petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
             petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
+		}
+
+		petaniAdminRoutes := api.Group("/petamin")
+		petaniAdminRoutes.Use(middleware.RoleMiddleware("Petani", "Admin"))
+		{
+			// deteksi penyakit tanaman
+			petaniAdminRoutes.POST("/penyakit", controllers.ClassifyPenyakit)
 		}
 
 		// middleware khusus Pembeli

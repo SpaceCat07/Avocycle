@@ -12,7 +12,7 @@ import (
 
 // @title       Avocycle API
 // @version     1.0
-// @description Dokumentasi API Avocycle (Kebun CRUD, Pagination, dan Response Format)
+// @description Dokumentasi API Avocycle (CRUD, Pagination, dan Response Format)
 // @host        localhost:2005
 // @BasePath 	/api/v1
 // @schemes     http
