@@ -3,12 +3,24 @@ package routes
 import (
 	"Avocycle/controllers"
 	"Avocycle/middleware"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func InitRoutes() *gin.Engine {
 	r := gin.Default()
+
+	// setting cors
+	r.Use(cors.New(cors.Config{
+		AllowAllOrigins:  true,
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge:           12 * time.Hour,
+	}))
 
 	// url api v1
 	api := r.Group("/api/v1")
