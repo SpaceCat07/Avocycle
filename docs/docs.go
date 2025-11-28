@@ -15,6 +15,88 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/auth/google/pembeli": {
+            "get": {
+                "description": "This endpoint will redirect users to Google Sign-in page in browser.\n\n⚠ Cannot be tested directly via Swagger or Postman.\n\nPlease open this URL in a normal browser instead:\n\nhttp://localhost:2005/api/v1/auth/google/pembeli",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth Pembeli with Google"
+                ],
+                "summary": "Login via Google OAuth (Pembeli)",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to Google OAuth",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/google/petani": {
+            "get": {
+                "description": "This endpoint will redirect users to Google Sign-in page in browser.\n\n⚠ Cannot be tested directly via Swagger or Postman.\n\nPlease open this URL in a normal browser instead:\n\nhttp://localhost:2005/api/v1/auth/google/petani",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth Petani with Google"
+                ],
+                "summary": "Login via Google OAuth (Petani)",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to Google OAuth",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/{provider}/callback/pembeli": {
+            "get": {
+                "description": "Handle Google OAuth callback and return JWT token for Pembeli.\n\nSetelah login dengan Google, browser akan menampilkan JSON berikut:\n\n{\n\"action\": \"google auth pembeli\",\n\"data\": {\n. \t\"ID\": 0,\n. \t\"CreatedAt\": \"2025-11-27T23:00:09.5797085-08:00\",\n. \t\"UpdatedAt\": \"2025-11-27T23:00:09.5797085-08:00\",\n. \t\"DeletedAt\": null,\n. \t\"fullname\": \"John Doe\",\n.     \"phone\": \"\",\n. \t\"email\": \"test123@gmail.com\",\n. \t\"password\": \"\",\n. \t\"auth_provider\": \"Google\",\n. \t\"provider_id\": \"110xxxxxxxxxxx\",\n. \t\"role\": \"Pembeli\"\n.\t\t},\n\"jwtToken\": \"eyJhbGciOiJIUzI1NiI....\",\n\"success\": true,\n\"token_google\": {\n. \t\"access_token\": \"ya29.A0ATi6K....\",\n. \t\"token_type\": \"Bearer\",\n. \t\"expiry\": \"2025-11-28T00:00:08.0994068-08:00\",\n. \t\"expires_in\": 3599\n.    }\n}",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth Pembeli with Google"
+                ],
+                "summary": "Google OAuth Callback (Pembeli)",
+                "responses": {
+                    "200": {
+                        "description": "Login success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/{provider}/callback/petani": {
+            "get": {
+                "description": "Handle Google OAuth callback and return JWT token for Petani.\n\nSetelah login dengan Google, browser akan menampilkan JSON berikut:\n\n{\n\"action\": \"google auth petani\",\n\"data\": {\n. \t\"ID\": 0,\n. \t\"CreatedAt\": \"2025-11-27T23:00:09.5797085-08:00\",\n. \t\"UpdatedAt\": \"2025-11-27T23:00:09.5797085-08:00\",\n. \t\"DeletedAt\": null,\n. \t\"fullname\": \"John Doe\",\n.     \"phone\": \"\",\n. \t\"email\": \"test123@gmail.com\",\n. \t\"password\": \"\",\n. \t\"auth_provider\": \"Google\",\n. \t\"provider_id\": \"110xxxxxxxxxxx\",\n. \t\"role\": \"Petani\"\n.\t\t},\n\"jwtToken\": \"eyJhbGciOiJIUzI1NiI....\",\n\"success\": true,\n\"token_google\": {\n. \t\"access_token\": \"ya29.A0ATi6K....\",\n. \t\"token_type\": \"Bearer\",\n. \t\"expiry\": \"2025-11-28T00:00:08.0994068-08:00\",\n. \t\"expires_in\": 3599\n.    }\n}",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth Petani with Google"
+                ],
+                "summary": "Google OAuth Callback (Petani)",
+                "responses": {
+                    "200": {
+                        "description": "Login success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
         "/kebun": {
             "get": {
                 "description": "Mengambil daftar kebun dengan pagination (menggunakan meta pagination sesuai utils Pagination)",
@@ -165,7 +247,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/controllers.UpdateKebunRequest"
                         }
                     }
                 ],
@@ -651,6 +733,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/petamin/penyakit/{id_tanaman}": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Menerima foto tanaman alpukat, mengklasifikasikan penyakit menggunakan Gemini AI, mengunggah foto, dan menyimpan log ke database.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Petani \u0026 Admin (Deteksi)"
+                ],
+                "summary": "Klasifikasi Penyakit Tanaman Alpukat",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Tanaman yang ingin diklasifikasi penyakitnya",
+                        "name": "id_tanaman",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Foto daun atau bagian tanaman yang sakit (JPG, PNG, dll.)",
+                        "name": "foto_tanaman",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Klasifikasi berhasil\" // \u003c-- Menggunakan wrapper dari package controllers",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.SuccessResponseWrapper"
+                        }
+                    },
+                    "400": {
+                        "description": "ID tanaman tidak valid atau Foto tanaman wajib diunggah\" // \u003c-- Menggunakan wrapper dari package controllers",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ErrorResponseWrapper"
+                        }
+                    },
+                    "500": {
+                        "description": "Gagal konek DB, Inisialisasi Gemini gagal, Proses klasifikasi atau upload gagal, atau Gagal menyimpan data\" // \u003c-- Menggunakan wrapper dari package controllers",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ErrorResponseWrapper"
+                        }
+                    }
+                }
+            }
+        },
         "/petani/buah": {
             "get": {
                 "security": [
@@ -758,7 +896,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/petani/buah/kebun/{id_kebun}": {
+        "/petani/buah/by-tanaman/{id_kebun}": {
             "get": {
                 "security": [
                     {
@@ -1200,7 +1338,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/tanaman/kebun/{id_kebun}": {
+        "/tanaman/by-kebun/{id_kebun}": {
             "get": {
                 "description": "Ambil data tanaman berdasarkan kebun_id",
                 "produces": [
@@ -1424,6 +1562,96 @@ const docTemplate = `{
                 }
             }
         },
+        "controllers.ClassifyPenyakitData": {
+            "type": "object",
+            "properties": {
+                "deskripsi": {
+                    "type": "string",
+                    "example": "Penyakit jamur yang menyebabkan bercak hitam."
+                },
+                "kondisi": {
+                    "type": "string",
+                    "example": "Sedang"
+                },
+                "log": {
+                    "description": "\u003c-- Ganti models.LogPenyakitTanaman",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/controllers.LogPenyakitTanamanCustom"
+                        }
+                    ]
+                },
+                "nama_penyakit": {
+                    "type": "string",
+                    "example": "Antraknosa"
+                },
+                "saran_perawatan": {
+                    "type": "string",
+                    "example": "Aplikasikan fungisida berbahan dasar tembaga."
+                }
+            }
+        },
+        "controllers.ErrorResponseWrapper": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {
+                    "description": "UBAH DARI interface{} (any) KE string",
+                    "type": "string",
+                    "example": "Gagal parsing hasil Gemini: invalid character..."
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Proses klasifikasi atau upload gagal"
+                },
+                "meta": {},
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "controllers.LogPenyakitTanamanCustom": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string",
+                    "example": "2025-11-28T08:37:35.000000000+07:00"
+                },
+                "ID": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "UpdatedAt": {
+                    "type": "string",
+                    "example": "2025-11-28T08:37:35.000000000+07:00"
+                },
+                "foto": {
+                    "type": "string",
+                    "example": "https://cloudinary.com/url..."
+                },
+                "foto_log_penyakit_id": {
+                    "type": "string",
+                    "example": "public_id_abc"
+                },
+                "kondisi": {
+                    "type": "string",
+                    "example": "Parah"
+                },
+                "penyakit_id": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "saran_perawatan": {
+                    "type": "string",
+                    "example": "Tingkatkan sirkulasi udara."
+                },
+                "tanaman_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "controllers.LoginRequest": {
             "type": "object",
             "properties": {
@@ -1455,6 +1683,34 @@ const docTemplate = `{
                 "phone": {
                     "type": "string",
                     "example": "08123456789"
+                }
+            }
+        },
+        "controllers.SuccessResponseWrapper": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/controllers.ClassifyPenyakitData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Klasifikasi berhasil"
+                },
+                "meta": {},
+                "success": {
+                    "type": "boolean",
+                    "example": true
+                }
+            }
+        },
+        "controllers.UpdateKebunRequest": {
+            "type": "object",
+            "properties": {
+                "mdpl": {
+                    "type": "string"
+                },
+                "nama_kebun": {
+                    "type": "string"
                 }
             }
         },

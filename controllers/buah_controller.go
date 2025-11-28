@@ -267,7 +267,7 @@ func DeleteBuah(c *gin.Context) {
 // @Success 200 {object} utils.Response
 // @Failure 400 {object} utils.Response
 // @Failure 500 {object} utils.Response
-// @Router /petani/buah/kebun/{id_kebun} [get]
+// @Router /petani/buah/by-tanaman/{id_kebun} [get]
 func GetBuahByKebun(c *gin.Context) {
     idKebun := c.Param("id_kebun")
 

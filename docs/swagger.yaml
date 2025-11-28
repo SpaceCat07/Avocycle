@@ -9,6 +9,70 @@ definitions:
         example: 1
         type: integer
     type: object
+  controllers.ClassifyPenyakitData:
+    properties:
+      deskripsi:
+        example: Penyakit jamur yang menyebabkan bercak hitam.
+        type: string
+      kondisi:
+        example: Sedang
+        type: string
+      log:
+        allOf:
+        - $ref: '#/definitions/controllers.LogPenyakitTanamanCustom'
+        description: <-- Ganti models.LogPenyakitTanaman
+      nama_penyakit:
+        example: Antraknosa
+        type: string
+      saran_perawatan:
+        example: Aplikasikan fungisida berbahan dasar tembaga.
+        type: string
+    type: object
+  controllers.ErrorResponseWrapper:
+    properties:
+      data: {}
+      error:
+        description: UBAH DARI interface{} (any) KE string
+        example: 'Gagal parsing hasil Gemini: invalid character...'
+        type: string
+      message:
+        example: Proses klasifikasi atau upload gagal
+        type: string
+      meta: {}
+      success:
+        example: false
+        type: boolean
+    type: object
+  controllers.LogPenyakitTanamanCustom:
+    properties:
+      CreatedAt:
+        example: "2025-11-28T08:37:35.000000000+07:00"
+        type: string
+      ID:
+        example: 1
+        type: integer
+      UpdatedAt:
+        example: "2025-11-28T08:37:35.000000000+07:00"
+        type: string
+      foto:
+        example: https://cloudinary.com/url...
+        type: string
+      foto_log_penyakit_id:
+        example: public_id_abc
+        type: string
+      kondisi:
+        example: Parah
+        type: string
+      penyakit_id:
+        example: 2
+        type: integer
+      saran_perawatan:
+        example: Tingkatkan sirkulasi udara.
+        type: string
+      tanaman_id:
+        example: 1
+        type: integer
+    type: object
   controllers.LoginRequest:
     properties:
       email:
@@ -31,6 +95,25 @@ definitions:
         type: string
       phone:
         example: "08123456789"
+        type: string
+    type: object
+  controllers.SuccessResponseWrapper:
+    properties:
+      data:
+        $ref: '#/definitions/controllers.ClassifyPenyakitData'
+      message:
+        example: Klasifikasi berhasil
+        type: string
+      meta: {}
+      success:
+        example: true
+        type: boolean
+    type: object
+  controllers.UpdateKebunRequest:
+    properties:
+      mdpl:
+        type: string
+      nama_kebun:
         type: string
     type: object
   models.SwaggerBooking:
@@ -135,6 +218,92 @@ info:
   title: Avocycle API
   version: "1.0"
 paths:
+  /auth/{provider}/callback/pembeli:
+    get:
+      description: "Handle Google OAuth callback and return JWT token for Pembeli.\n\nSetelah
+        login dengan Google, browser akan menampilkan JSON berikut:\n\n{\n\"action\":
+        \"google auth pembeli\",\n\"data\": {\n. \t\"ID\": 0,\n. \t\"CreatedAt\":
+        \"2025-11-27T23:00:09.5797085-08:00\",\n. \t\"UpdatedAt\": \"2025-11-27T23:00:09.5797085-08:00\",\n.
+        \t\"DeletedAt\": null,\n. \t\"fullname\": \"John Doe\",\n.     \"phone\":
+        \"\",\n. \t\"email\": \"test123@gmail.com\",\n. \t\"password\": \"\",\n. \t\"auth_provider\":
+        \"Google\",\n. \t\"provider_id\": \"110xxxxxxxxxxx\",\n. \t\"role\": \"Pembeli\"\n.\t\t},\n\"jwtToken\":
+        \"eyJhbGciOiJIUzI1NiI....\",\n\"success\": true,\n\"token_google\": {\n. \t\"access_token\":
+        \"ya29.A0ATi6K....\",\n. \t\"token_type\": \"Bearer\",\n. \t\"expiry\": \"2025-11-28T00:00:08.0994068-08:00\",\n.
+        \t\"expires_in\": 3599\n.    }\n}"
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login success
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Google OAuth Callback (Pembeli)
+      tags:
+      - Auth Pembeli with Google
+  /auth/{provider}/callback/petani:
+    get:
+      description: "Handle Google OAuth callback and return JWT token for Petani.\n\nSetelah
+        login dengan Google, browser akan menampilkan JSON berikut:\n\n{\n\"action\":
+        \"google auth petani\",\n\"data\": {\n. \t\"ID\": 0,\n. \t\"CreatedAt\": \"2025-11-27T23:00:09.5797085-08:00\",\n.
+        \t\"UpdatedAt\": \"2025-11-27T23:00:09.5797085-08:00\",\n. \t\"DeletedAt\":
+        null,\n. \t\"fullname\": \"John Doe\",\n.     \"phone\": \"\",\n. \t\"email\":
+        \"test123@gmail.com\",\n. \t\"password\": \"\",\n. \t\"auth_provider\": \"Google\",\n.
+        \t\"provider_id\": \"110xxxxxxxxxxx\",\n. \t\"role\": \"Petani\"\n.\t\t},\n\"jwtToken\":
+        \"eyJhbGciOiJIUzI1NiI....\",\n\"success\": true,\n\"token_google\": {\n. \t\"access_token\":
+        \"ya29.A0ATi6K....\",\n. \t\"token_type\": \"Bearer\",\n. \t\"expiry\": \"2025-11-28T00:00:08.0994068-08:00\",\n.
+        \t\"expires_in\": 3599\n.    }\n}"
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login success
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Google OAuth Callback (Petani)
+      tags:
+      - Auth Petani with Google
+  /auth/google/pembeli:
+    get:
+      description: |-
+        This endpoint will redirect users to Google Sign-in page in browser.
+
+        ⚠ Cannot be tested directly via Swagger or Postman.
+
+        Please open this URL in a normal browser instead:
+
+        http://localhost:2005/api/v1/auth/google/pembeli
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirect to Google OAuth
+          schema:
+            type: string
+      summary: Login via Google OAuth (Pembeli)
+      tags:
+      - Auth Pembeli with Google
+  /auth/google/petani:
+    get:
+      description: |-
+        This endpoint will redirect users to Google Sign-in page in browser.
+
+        ⚠ Cannot be tested directly via Swagger or Postman.
+
+        Please open this URL in a normal browser instead:
+
+        http://localhost:2005/api/v1/auth/google/petani
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirect to Google OAuth
+          schema:
+            type: string
+      summary: Login via Google OAuth (Petani)
+      tags:
+      - Auth Petani with Google
   /kebun:
     get:
       description: Mengambil daftar kebun dengan pagination (menggunakan meta pagination
@@ -250,7 +419,7 @@ paths:
         name: request
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/controllers.UpdateKebunRequest'
       produces:
       - application/json
       responses:
@@ -530,6 +699,47 @@ paths:
       summary: Get booking list by user ID
       tags:
       - Booking
+  /petamin/penyakit/{id_tanaman}:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Menerima foto tanaman alpukat, mengklasifikasikan penyakit menggunakan
+        Gemini AI, mengunggah foto, dan menyimpan log ke database.
+      parameters:
+      - description: ID Tanaman yang ingin diklasifikasi penyakitnya
+        in: path
+        name: id_tanaman
+        required: true
+        type: integer
+      - description: Foto daun atau bagian tanaman yang sakit (JPG, PNG, dll.)
+        in: formData
+        name: foto_tanaman
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Klasifikasi berhasil" // <-- Menggunakan wrapper dari package
+            controllers
+          schema:
+            $ref: '#/definitions/controllers.SuccessResponseWrapper'
+        "400":
+          description: ID tanaman tidak valid atau Foto tanaman wajib diunggah" //
+            <-- Menggunakan wrapper dari package controllers
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponseWrapper'
+        "500":
+          description: Gagal konek DB, Inisialisasi Gemini gagal, Proses klasifikasi
+            atau upload gagal, atau Gagal menyimpan data" // <-- Menggunakan wrapper
+            dari package controllers
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponseWrapper'
+      security:
+      - Bearer: []
+      summary: Klasifikasi Penyakit Tanaman Alpukat
+      tags:
+      - Petani & Admin (Deteksi)
   /petani/buah:
     get:
       description: Retrieve paginated list of buah
@@ -696,7 +906,7 @@ paths:
       summary: Update buah
       tags:
       - Buah
-  /petani/buah/kebun/{id_kebun}:
+  /petani/buah/by-tanaman/{id_kebun}:
     get:
       description: Retrieve buah based on related tanaman kebun
       parameters:
@@ -990,7 +1200,7 @@ paths:
       summary: Update tanaman
       tags:
       - Tanaman
-  /tanaman/kebun/{id_kebun}:
+  /tanaman/by-kebun/{id_kebun}:
     get:
       description: Ambil data tanaman berdasarkan kebun_id
       parameters:

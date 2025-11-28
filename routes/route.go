@@ -66,7 +66,7 @@ func InitRoutes() *gin.Engine {
             petaniRoutes.POST("/buah", controllers.CreateBuah)
             petaniRoutes.GET("/buah", controllers.GetAllBuah)
             petaniRoutes.GET("/buah/:id", controllers.GetBuahByID)
-      			petaniRoutes.GET("/buah/by-tanaman/:id_kebun", controllers.GetBuahByKebun)
+			petaniRoutes.GET("/buah/by-tanaman/:id_kebun", controllers.GetBuahByKebun)
             petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
             petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
 
@@ -99,7 +99,20 @@ func InitRoutes() *gin.Engine {
 		petaniAdminRoutes.Use(middleware.RoleMiddleware("Petani", "Admin"))
 		{
 			// deteksi penyakit tanaman
-			petaniAdminRoutes.POST("/penyakit", controllers.ClassifyPenyakit)
+			petaniAdminRoutes.POST("/penyakit/:id_tanaman", controllers.ClassifyPenyakit)
+		}
+
+		// middleware khusus Pembeli
+		pembeliRoutes := api.Group("/pembeli")
+		pembeliRoutes.Use(middleware.RoleMiddleware("Pembeli"))
+		{
+			// CRUD Booking
+			pembeliRoutes.POST("/booking", controllers.CreateBooking)
+			pembeliRoutes.GET("/booking", controllers.GetAllBooking)
+			pembeliRoutes.GET("/booking/:id", controllers.GetBookingByID)
+			pembeliRoutes.PUT("/booking/:id", controllers.UpdateBooking)
+			pembeliRoutes.DELETE("/booking/:id", controllers.DeleteBooking)
+			pembeliRoutes.GET("/booking/user/:user_id", controllers.GetBookingByUserID)
 		}
 	}
 
