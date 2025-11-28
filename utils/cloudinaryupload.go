@@ -13,6 +13,7 @@ import (
     "github.com/cloudinary/cloudinary-go/v2/api/uploader"
 )
 
+// mantap
 const uploadTimeout = 30 * time.Second
 const maxUploadSize = 10 << 20 // 10 MB
 
