@@ -455,10 +455,8 @@ func GetTanamanByKebunID(c *gin.Context) {
 
 	// hitung total tanaman di kebun ini
 	var totalRows int64
-	if err := db.Model(&models.Tanaman{}).
-		Where("kebun_id = ?", idKebun).
-		Count(&totalRows).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count tanaman data", err.Error())
+	if err := db.Model(&models.Tanaman{}).Joins("Tanaman").Where("tanaman.kebun_id = ?", idKebun).Count(&totalRows).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count buah data", err.Error())
 		return
 	}
 
@@ -476,15 +474,14 @@ func GetTanamanByKebunID(c *gin.Context) {
 
 	// ambil data tanaman berdasarkan kebun_id
 	var tanamanList []models.Tanaman
-	if err := db.
-		Preload("Kebun").
-		Where("kebun_id = ?", idKebun).
-		Offset(offset).
-		Limit(perPage).
-		Find(&tanamanList).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve tanaman data", err.Error())
+	if err := db.Model(&models.Tanaman{}).Joins("Kebun").Where("tanaman.kebun_id = ?", idKebun).
+        Preload("Tanaman").
+        Offset(offset).
+        Find(&tanamanList).Error ;err != nil {
+        
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrive tanaman data", err.Error())
 		return
-	}
+    }
 
 	utils.SuccessResponseWithMeta(c, http.StatusOK, "Tanaman data retrieved successfully", tanamanList, pagination)
 }
