@@ -35,6 +35,26 @@ const docTemplate = `{
                 }
             }
         },
+        "/auth/google/petani": {
+            "get": {
+                "description": "This endpoint will redirect users to Google Sign-in page in browser.\n\n⚠ Cannot be tested directly via Swagger or Postman.\n\nPlease open this URL in a normal browser instead:\n\nhttp://localhost:2005/api/v1/auth/google/petani",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth Petani with Google"
+                ],
+                "summary": "Login via Google OAuth (Petani)",
+                "responses": {
+                    "302": {
+                        "description": "Redirect to Google OAuth",
+                        "schema": {
+                            "type": "string"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/{provider}/callback/pembeli": {
             "get": {
                 "description": "Handle Google OAuth callback and return JWT token for Pembeli.\n\nSetelah login dengan Google, browser akan menampilkan JSON berikut:\n\n{\n\"action\": \"google auth pembeli\",\n\"data\": {\n. \t\"ID\": 0,\n. \t\"CreatedAt\": \"2025-11-27T23:00:09.5797085-08:00\",\n. \t\"UpdatedAt\": \"2025-11-27T23:00:09.5797085-08:00\",\n. \t\"DeletedAt\": null,\n. \t\"fullname\": \"John Doe\",\n.     \"phone\": \"\",\n. \t\"email\": \"test123@gmail.com\",\n. \t\"password\": \"\",\n. \t\"auth_provider\": \"Google\",\n. \t\"provider_id\": \"110xxxxxxxxxxx\",\n. \t\"role\": \"Pembeli\"\n.\t\t},\n\"jwtToken\": \"eyJhbGciOiJIUzI1NiI....\",\n\"success\": true,\n\"token_google\": {\n. \t\"access_token\": \"ya29.A0ATi6K....\",\n. \t\"token_type\": \"Bearer\",\n. \t\"expiry\": \"2025-11-28T00:00:08.0994068-08:00\",\n. \t\"expires_in\": 3599\n.    }\n}",
@@ -45,6 +65,27 @@ const docTemplate = `{
                     "Auth Pembeli with Google"
                 ],
                 "summary": "Google OAuth Callback (Pembeli)",
+                "responses": {
+                    "200": {
+                        "description": "Login success",
+                        "schema": {
+                            "type": "object",
+                            "additionalProperties": true
+                        }
+                    }
+                }
+            }
+        },
+        "/auth/{provider}/callback/petani": {
+            "get": {
+                "description": "Handle Google OAuth callback and return JWT token for Petani.\n\nSetelah login dengan Google, browser akan menampilkan JSON berikut:\n\n{\n\"action\": \"google auth petani\",\n\"data\": {\n. \t\"ID\": 0,\n. \t\"CreatedAt\": \"2025-11-27T23:00:09.5797085-08:00\",\n. \t\"UpdatedAt\": \"2025-11-27T23:00:09.5797085-08:00\",\n. \t\"DeletedAt\": null,\n. \t\"fullname\": \"John Doe\",\n.     \"phone\": \"\",\n. \t\"email\": \"test123@gmail.com\",\n. \t\"password\": \"\",\n. \t\"auth_provider\": \"Google\",\n. \t\"provider_id\": \"110xxxxxxxxxxx\",\n. \t\"role\": \"Petani\"\n.\t\t},\n\"jwtToken\": \"eyJhbGciOiJIUzI1NiI....\",\n\"success\": true,\n\"token_google\": {\n. \t\"access_token\": \"ya29.A0ATi6K....\",\n. \t\"token_type\": \"Bearer\",\n. \t\"expiry\": \"2025-11-28T00:00:08.0994068-08:00\",\n. \t\"expires_in\": 3599\n.    }\n}",
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Auth Petani with Google"
+                ],
+                "summary": "Google OAuth Callback (Petani)",
                 "responses": {
                     "200": {
                         "description": "Login success",
