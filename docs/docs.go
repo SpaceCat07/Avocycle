@@ -247,7 +247,7 @@ const docTemplate = `{
                         "in": "body",
                         "required": true,
                         "schema": {
-                            "type": "object"
+                            "$ref": "#/definitions/controllers.UpdateKebunRequest"
                         }
                     }
                 ],
@@ -1537,6 +1537,17 @@ const docTemplate = `{
                 "phone": {
                     "type": "string",
                     "example": "08123456789"
+                }
+            }
+        },
+        "controllers.UpdateKebunRequest": {
+            "type": "object",
+            "properties": {
+                "mdpl": {
+                    "type": "string"
+                },
+                "nama_kebun": {
+                    "type": "string"
                 }
             }
         },

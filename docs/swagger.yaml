@@ -33,6 +33,13 @@ definitions:
         example: "08123456789"
         type: string
     type: object
+  controllers.UpdateKebunRequest:
+    properties:
+      mdpl:
+        type: string
+      nama_kebun:
+        type: string
+    type: object
   models.SwaggerBooking:
     properties:
       created_at:
@@ -336,7 +343,7 @@ paths:
         name: request
         required: true
         schema:
-          type: object
+          $ref: '#/definitions/controllers.UpdateKebunRequest'
       produces:
       - application/json
       responses:

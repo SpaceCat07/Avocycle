@@ -13,6 +13,11 @@ import (
 	"Avocycle/utils"
 )
 
+type UpdateKebunRequest struct {
+	NamaKebun *string `json:"nama_kebun"`
+	MDPL      *string `json:"mdpl"`
+}
+
 // --- CONTROLLERS ---
 
 // GET /kebun
@@ -154,7 +159,7 @@ func CreateKebun(c *gin.Context) {
 // @Accept      json
 // @Produce     json
 // @Param       id       path   int  true  "ID Kebun"
-// @Param request body object{nama_kebun:string,mdpl:string} true "Input update"
+// @Param request body controllers.UpdateKebunRequest true "Input update"
 // @Security 	Bearer
 // @Success     200  {object} utils.Response
 // @Failure     404  {object} utils.Response
@@ -178,11 +183,7 @@ func UpdateKebun(c *gin.Context) {
 		return
 	}
 
-	var input struct {
-		NamaKebun *string `json:"nama_kebun"`
-		MDPL      *string `json:"mdpl"`
-	}
-
+	var input UpdateKebunRequest
 	if err := c.ShouldBindJSON(&input); err != nil {
 		utils.ErrorResponse(c, http.StatusBadRequest, "Input tidak valid", err.Error())
 		return
