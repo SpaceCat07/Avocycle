@@ -799,7 +799,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/petani/buah/kebun/{id_kebun}": {
+        "/petani/buah/by-tanaman/{id_kebun}": {
             "get": {
                 "security": [
                     {
@@ -1241,7 +1241,7 @@ const docTemplate = `{
                 }
             }
         },
-        "/tanaman/kebun/{id_kebun}": {
+        "/tanaman/by-kebun/{id_kebun}": {
             "get": {
                 "description": "Ambil data tanaman berdasarkan kebun_id",
                 "produces": [

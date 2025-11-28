@@ -739,7 +739,7 @@ paths:
       summary: Update buah
       tags:
       - Buah
-  /petani/buah/kebun/{id_kebun}:
+  /petani/buah/by-tanaman/{id_kebun}:
     get:
       description: Retrieve buah based on related tanaman kebun
       parameters:
@@ -1033,7 +1033,7 @@ paths:
       summary: Update tanaman
       tags:
       - Tanaman
-  /tanaman/kebun/{id_kebun}:
+  /tanaman/by-kebun/{id_kebun}:
     get:
       description: Ambil data tanaman berdasarkan kebun_id
       parameters:

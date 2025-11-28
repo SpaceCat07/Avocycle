@@ -9,6 +9,7 @@ import (
 
 	"github.com/gin-gonic/gin"
 	"gorm.io/gorm"
+	"strconv" // <== WAJIB TAMBAH INI
 
 	"Avocycle/config"
 	"Avocycle/models"
@@ -262,128 +263,110 @@ func CreateTanaman(c *gin.Context) {
 // @Failure 400 {object} utils.Response
 // @Router /tanaman/{id} [put]
 func UpdateTanaman(c *gin.Context) {
-    db, err := config.DbConnect()
-    if err != nil {
-        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
-        return
-    }
+	db, err := config.DbConnect()
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal koneksi database", nil)
+		return
+	}
 
-    id := c.Param("id")
+	id := c.Param("id")
 
-    var tanaman models.Tanaman
-    if err := db.Preload("Kebun").First(&tanaman, id).Error; err != nil {
-        if err == gorm.ErrRecordNotFound {
-            utils.ErrorResponse(c, http.StatusNotFound, "Tanaman tidak ditemukan", nil)
-            return
-        }
-        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil tanaman", err.Error())
-        return
-    }
+	var tanaman models.Tanaman
+	if err := db.First(&tanaman, id).Error; err != nil {
+		if err == gorm.ErrRecordNotFound {
+			utils.ErrorResponse(c, http.StatusNotFound, "Tanaman tidak ditemukan", nil)
+			return
+		}
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal mengambil tanaman", err.Error())
+		return
+	}
 
-    var input struct {
-        NamaTanaman  *string `form:"nama_tanaman" json:"nama_tanaman"`
-        Varietas     *string `form:"varietas" json:"varietas"`
-        TanggalTanam *string `form:"tanggal_tanam" json:"tanggal_tanam"`
-        KebunID      *uint   `form:"kebun_id" json:"kebun_id"`
-        KodeBlok     *string `form:"kode_blok" json:"kode_blok"`
-        KodeTanaman  *string `form:"kode_tanaman" json:"kode_tanaman"`
-        MasaProduksi *int    `form:"masa_produksi" json:"masa_produksi"`
-    }
+	// ====================== INPUT HANDLING =====================
+	inputNama := strings.TrimSpace(c.PostForm("nama_tanaman"))
+	if inputNama != "" {
+		tanaman.NamaTanaman = inputNama
+	}
 
-    if err := c.ShouldBind(&input); err != nil {
-        utils.ErrorResponse(c, http.StatusBadRequest, "Input tidak valid", err.Error())
-        return
-    }
+	if varietas := c.PostForm("varietas"); varietas != "" {
+		if !isValidVarietas(varietas) {
+			utils.ErrorResponse(c, http.StatusBadRequest, "varietas tidak valid (Var1, Var2, Var3)", varietas)
+			return
+		}
+		tanaman.Varietas = varietas
+	}
 
-    if input.NamaTanaman != nil {
-        nama := strings.TrimSpace(*input.NamaTanaman)
-        if nama == "" {
-            utils.ErrorResponse(c, http.StatusBadRequest, "nama_tanaman tidak boleh kosong", nil)
-            return
-        }
-        tanaman.NamaTanaman = nama
-    }
+	if tanggal := c.PostForm("tanggal_tanam"); tanggal != "" {
+		parsed, err := parseAndValidateTanggalTanam(tanggal)
+		if err != nil {
+			utils.ErrorResponse(c, http.StatusBadRequest, "tanggal_tanam tidak valid", err.Error())
+			return
+		}
+		tanaman.TanggalTanam = parsed
+	}
 
-    if input.Varietas != nil {
-        if !isValidVarietas(*input.Varietas) {
-            utils.ErrorResponse(c, http.StatusBadRequest, "varietas tidak valid. Hanya boleh Var1 / Var2 / Var3", *input.Varietas)
-            return
-        }
-        tanaman.Varietas = *input.Varietas
-    }
+	if kebunForm := c.PostForm("kebun_id"); kebunForm != "" {
+		idKebun, err := strconv.Atoi(kebunForm)
+		if err != nil || idKebun <= 0 {
+			utils.ErrorResponse(c, http.StatusBadRequest, "kebun_id tidak valid", kebunForm)
+			return
+		}
 
-    if input.TanggalTanam != nil {
-        if strings.TrimSpace(*input.TanggalTanam) == "" {
-            utils.ErrorResponse(c, http.StatusBadRequest, "tanggal_tanam tidak boleh kosong", nil)
-            return
-        }
-        parsedTanggal, err := parseAndValidateTanggalTanam(*input.TanggalTanam)
-        if err != nil {
-            utils.ErrorResponse(c, http.StatusBadRequest, "tanggal_tanam tidak valid", err.Error())
-            return
-        }
-        tanaman.TanggalTanam = parsedTanggal
-    }
+		if msg := ensureKebunExists(db, uint(idKebun)); msg != nil {
+			utils.ErrorResponse(c, http.StatusBadRequest, *msg, idKebun)
+			return
+		}
 
-    if input.KebunID != nil {
-        if msg := ensureKebunExists(db, *input.KebunID); msg != nil {
-            utils.ErrorResponse(c, http.StatusBadRequest, *msg, *input.KebunID)
-            return
-        }
-        tanaman.KebunID = *input.KebunID
-    }
+		tanaman.KebunID = uint(idKebun)
+	}
 
-    if input.KodeBlok != nil {
-        if kode := strings.TrimSpace(*input.KodeBlok); kode == "" {
-            utils.ErrorResponse(c, http.StatusBadRequest, "kode_blok tidak boleh kosong", nil)
-            return
-        } else {
-            tanaman.KodeBlok = kode
-        }
-    }
+	if kodeBlok := strings.TrimSpace(c.PostForm("kode_blok")); kodeBlok != "" {
+		tanaman.KodeBlok = kodeBlok
+	}
 
-    if input.KodeTanaman != nil {
-        if kode := strings.TrimSpace(*input.KodeTanaman); kode == "" {
-            utils.ErrorResponse(c, http.StatusBadRequest, "kode_tanaman tidak boleh kosong", nil)
-            return
-        } else {
-            tanaman.KodeTanaman = kode
-        }
-    }
+	if kodeTanaman := strings.TrimSpace(c.PostForm("kode_tanaman")); kodeTanaman != "" {
+		tanaman.KodeTanaman = kodeTanaman
+	}
 
-    if input.MasaProduksi != nil {
-        if *input.MasaProduksi <= 0 {
-            utils.ErrorResponse(c, http.StatusBadRequest, "masa_produksi harus lebih dari 0", nil)
-            return
-        }
-        tanaman.MasaProduksi = *input.MasaProduksi
-    }
+	if masa := c.PostForm("masa_produksi"); masa != "" {
+		masaInt, err := strconv.Atoi(masa)
+		if err != nil || masaInt <= 0 {
+			utils.ErrorResponse(c, http.StatusBadRequest, "masa_produksi harus angka > 0", masa)
+			return
+		}
+		tanaman.MasaProduksi = masaInt
+	}
 
-    fileHeader, _ := c.FormFile("foto_tanaman")
-    if fileHeader != nil {
-        newURL, newPublicID, uploadErr := utils.AsyncUploadOptionalImage(fileHeader, "tanaman")
-        if uploadErr != nil {
-            utils.ErrorResponse(c, http.StatusBadRequest, "Upload foto gagal", uploadErr.Error())
-            return
-        }
+	// ====================== FOTO HANDLING =====================
+	fileHeader, _ := c.FormFile("foto_tanaman")
+	if fileHeader != nil {
+		newURL, newPublicID, uploadErr := utils.AsyncUploadOptionalImage(fileHeader, "tanaman")
+		if uploadErr != nil {
+			utils.ErrorResponse(c, http.StatusBadRequest, "Upload foto gagal", uploadErr.Error())
+			return
+		}
 
-        if tanaman.FotoTanamanID != "" {
-            if err := utils.DeleteCloudinaryAsset(tanaman.FotoTanamanID); err != nil {
-                utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal menghapus foto lama", err.Error())
-                return
-            }
-        }
+		// Hapus foto lama jika ada
+		if tanaman.FotoTanamanID != "" {
+			_ = utils.DeleteCloudinaryAsset(tanaman.FotoTanamanID)
+		}
 
-        tanaman.FotoTanaman = newURL
-        tanaman.FotoTanamanID = newPublicID
-    }
+		tanaman.FotoTanaman = newURL
+		tanaman.FotoTanamanID = newPublicID
+	}
 
-    if err := db.Save(&tanaman).Error; err != nil {
-        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal update tanaman", err.Error())
-        return
-    }
+	// ====================== SIMPAN =====================
+	if err := db.Save(&tanaman).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal menyimpan perubahan", err.Error())
+		return
+	}
 
-    utils.SuccessResponse(c, http.StatusOK, "Tanaman berhasil diperbarui", tanaman)
+	// ====================== RELOAD RELASI KEBUN =====================
+	if err := db.Preload("Kebun").First(&tanaman, tanaman.ID).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal reload tanaman", err.Error())
+		return
+	}
+
+	utils.SuccessResponse(c, http.StatusOK, "Tanaman berhasil diperbarui", tanaman)
 }
 
 // DELETE /tanaman/:id
@@ -439,7 +422,7 @@ func DeleteTanaman(c *gin.Context) {
 // @Param per_page query int false "Jumlah per halaman"
 // @Success 200 {object} utils.Response
 // @Failure 400 {object} utils.Response
-// @Router /tanaman/kebun/{id_kebun} [get]
+// @Router /tanaman/by-kebun/{id_kebun} [get]
 func GetTanamanByKebunID(c *gin.Context) {
 	idKebun := c.Param("id_kebun")
 
