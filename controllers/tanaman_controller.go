@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"fmt"
+	"mime/multipart"
 	"net/http"
-	"strconv"
 	"strings"
 	"time"
 
@@ -56,59 +56,66 @@ func ensureKebunExists(db *gorm.DB, kebunID uint) *string {
 
 // --- controller ---
 func GetAllTanaman(c *gin.Context) {
+	// get pagination parameters
+	page, perPage := utils.GetPagination(c)
+	offset := utils.GetOffset(page, perPage)
+
+	// connect to db
 	db, err := config.DbConnect()
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
 		return
 	}
 
-	pageParam := c.DefaultQuery("page", "1")
-	limitParam := c.DefaultQuery("limit", "10")
+	// count total rows
+	var totalRows int64
+	if err := db.Model(&models.Tanaman{}).Count(&totalRows).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count tanaman data", err.Error())
+		return
+	} 
 
-	page, err := strconv.Atoi(pageParam)
-	if err != nil || page < 1 {
-		page = 1
-	}
-	limit, err := strconv.Atoi(limitParam)
-	if err != nil || limit < 1 || limit > 100 {
-		limit = 10
-	}
-	offset := (page - 1) * limit
+	// calculate pagination
+	pagination := utils.CalculatePagination(page, perPage, totalRows)
 
-	var total int64
-	if err := db.Model(&models.Tanaman{}).Count(&total).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal hitung data", err.Error())
+	// validate page range
+	if page > pagination.TotalPages && pagination.TotalPages > 0 {
+		utils.ErrorResponseWithData(c, http.StatusBadRequest,
+		fmt.Sprintf("Page %d out of range. Only %d pages are available", page, pagination.TotalPages),
+		nil,
+		"Page out of range",
+	)
+	return
+	}
+
+	// get paginated data
+	var tanamanList []models.Tanaman
+	if err := db.Preload("Kebun").
+		Limit(perPage).
+		Offset(offset).
+		Find(&tanamanList).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve buah data", err.Error())
 		return
 	}
 
-	var tanaman []models.Tanaman
-	if err := db.Preload("Kebun").Limit(limit).Offset(offset).Find(&tanaman).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil data tanaman", err.Error())
+	// handle empty data
+	if totalRows == 0 {
+		utils.SuccessResponseWithMeta(c, http.StatusOK, "No tanaman data found", []models.Tanaman{}, pagination)
 		return
 	}
 
-	totalPages := int((total + int64(limit) - 1) / int64(limit))
-
-	utils.SuccessResponse(c, http.StatusOK, "Daftar tanaman", gin.H{
-		"items": tanaman,
-		"pagination": gin.H{
-			"page":        page,
-			"limit":       limit,
-			"total":       total,
-			"total_pages": totalPages,
-		},
-	})
+	utils.SuccessResponseWithMeta(c, http.StatusOK, "Tanaman data retrieve successfully", tanamanList, pagination)
 }
 
 // GET /tanaman/:id
 func GetTanamanByID(c *gin.Context) {
+	id := c.Param("id")
+
 	db, err := config.DbConnect()
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
 		return
 	}
 
-	id := c.Param("id")
 	var tanaman models.Tanaman
 	if err := db.Preload("Kebun").First(&tanaman, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -136,6 +143,10 @@ func CreateTanaman(c *gin.Context) {
 		Varietas     string `json:"varietas" binding:"required"`
 		TanggalTanam string `json:"tanggal_tanam" binding:"required"` // YYYY-MM-DD
 		KebunID      uint   `json:"kebun_id" binding:"required"`
+		KodeBlok 	 string `json:"kode_blok" binding:"required"`
+		KodeTanaman	 string `json:"kode_tanaman" binding:"required"`
+		FotoTanaman  *multipart.FileHeader `form:"foto_tanaman"`
+		MasaProduksi int	`json:"masa_produksi" binding:"required"`
 	}
 
 	// 1) bind JSON
@@ -169,10 +180,24 @@ func CreateTanaman(c *gin.Context) {
 
 	// 3) map ke model & simpan
 	tanaman := models.Tanaman{
-		NamaTanaman:  nama,
+		NamaTanaman:  input.NamaTanaman,
 		Varietas:     input.Varietas,
 		TanggalTanam: parsedTanggal,
 		KebunID:      input.KebunID,
+		KodeBlok: 	  input.KodeBlok,
+		KodeTanaman:  input.KodeTanaman,
+		MasaProduksi: input.MasaProduksi,
+	}
+
+	fileHeader, _ := c.FormFile("foto_tanaman")
+	if fileHeader != nil {
+		url, publicID, uploadErr := utils.AsyncUploadOptionalImage(fileHeader, "tanaman")
+		if uploadErr != nil {
+            utils.ErrorResponse(c, http.StatusBadRequest, "Upload foto gagal", uploadErr.Error())
+            return
+        }
+        tanaman.FotoTanaman = url
+        tanaman.FotoTanamanID = publicID
 	}
 
 	if err := db.Create(&tanaman).Error; err != nil {
@@ -185,110 +210,204 @@ func CreateTanaman(c *gin.Context) {
 
 // PUT /tanaman/:id
 func UpdateTanaman(c *gin.Context) {
-	db, err := config.DbConnect()
-	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
-		return
-	}
+    db, err := config.DbConnect()
+    if err != nil {
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
+        return
+    }
 
-	id := c.Param("id")
+    id := c.Param("id")
 
-	var tanaman models.Tanaman
-	if err := db.First(&tanaman, id).Preload("Kebun").Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusNotFound, "Tanaman tidak ditemukan", nil)
-			return
-		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil tanaman", err.Error())
-		return
-	}
+    var tanaman models.Tanaman
+    if err := db.Preload("Kebun").First(&tanaman, id).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            utils.ErrorResponse(c, http.StatusNotFound, "Tanaman tidak ditemukan", nil)
+            return
+        }
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil tanaman", err.Error())
+        return
+    }
 
-	// input struct lokal (pointer untuk partial update)
-	var input struct {
-		NamaTanaman  *string `json:"nama_tanaman"`
-		Varietas     *string `json:"varietas"`
-		TanggalTanam *string `json:"tanggal_tanam"` // YYYY-MM-DD
-		KebunID      *uint   `json:"kebun_id"`
-	}
+    var input struct {
+        NamaTanaman  *string `form:"nama_tanaman" json:"nama_tanaman"`
+        Varietas     *string `form:"varietas" json:"varietas"`
+        TanggalTanam *string `form:"tanggal_tanam" json:"tanggal_tanam"`
+        KebunID      *uint   `form:"kebun_id" json:"kebun_id"`
+        KodeBlok     *string `form:"kode_blok" json:"kode_blok"`
+        KodeTanaman  *string `form:"kode_tanaman" json:"kode_tanaman"`
+        MasaProduksi *int    `form:"masa_produksi" json:"masa_produksi"`
+    }
 
-	// 1) bind JSON
-	if err := c.ShouldBindJSON(&input); err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "Input tidak valid", err.Error())
-		return
-	}
+    if err := c.ShouldBind(&input); err != nil {
+        utils.ErrorResponse(c, http.StatusBadRequest, "Input tidak valid", err.Error())
+        return
+    }
 
-	// 2) apply+validasi hanya field yang dikirim
-	if input.NamaTanaman != nil {
-		nama := strings.TrimSpace(*input.NamaTanaman)
-		if nama == "" {
-			utils.ErrorResponse(c, http.StatusBadRequest, "nama_tanaman tidak boleh kosong", nil)
-			return
-		}
-		tanaman.NamaTanaman = nama
-	}
+    if input.NamaTanaman != nil {
+        nama := strings.TrimSpace(*input.NamaTanaman)
+        if nama == "" {
+            utils.ErrorResponse(c, http.StatusBadRequest, "nama_tanaman tidak boleh kosong", nil)
+            return
+        }
+        tanaman.NamaTanaman = nama
+    }
 
-	if input.Varietas != nil {
-		if !isValidVarietas(*input.Varietas) {
-			utils.ErrorResponse(c, http.StatusBadRequest, "varietas tidak valid. Hanya boleh Var1 / Var2 / Var3", *input.Varietas)
-			return
-		}
-		tanaman.Varietas = *input.Varietas
-	}
+    if input.Varietas != nil {
+        if !isValidVarietas(*input.Varietas) {
+            utils.ErrorResponse(c, http.StatusBadRequest, "varietas tidak valid. Hanya boleh Var1 / Var2 / Var3", *input.Varietas)
+            return
+        }
+        tanaman.Varietas = *input.Varietas
+    }
 
-	if input.TanggalTanam != nil {
-		if strings.TrimSpace(*input.TanggalTanam) == "" {
-			utils.ErrorResponse(c, http.StatusBadRequest, "tanggal_tanam tidak boleh kosong", nil)
-			return
-		}
-		parsedTanggal, err := parseAndValidateTanggalTanam(*input.TanggalTanam)
-		if err != nil {
-			utils.ErrorResponse(c, http.StatusBadRequest, "tanggal_tanam tidak valid", err.Error())
-			return
-		}
-		tanaman.TanggalTanam = parsedTanggal
-	}
+    if input.TanggalTanam != nil {
+        if strings.TrimSpace(*input.TanggalTanam) == "" {
+            utils.ErrorResponse(c, http.StatusBadRequest, "tanggal_tanam tidak boleh kosong", nil)
+            return
+        }
+        parsedTanggal, err := parseAndValidateTanggalTanam(*input.TanggalTanam)
+        if err != nil {
+            utils.ErrorResponse(c, http.StatusBadRequest, "tanggal_tanam tidak valid", err.Error())
+            return
+        }
+        tanaman.TanggalTanam = parsedTanggal
+    }
 
-	if input.KebunID != nil {
-		if msg := ensureKebunExists(db, *input.KebunID); msg != nil {
-			utils.ErrorResponse(c, http.StatusBadRequest, *msg, *input.KebunID)
-			return
-		}
-		tanaman.KebunID = *input.KebunID
-	}
+    if input.KebunID != nil {
+        if msg := ensureKebunExists(db, *input.KebunID); msg != nil {
+            utils.ErrorResponse(c, http.StatusBadRequest, *msg, *input.KebunID)
+            return
+        }
+        tanaman.KebunID = *input.KebunID
+    }
 
-	// 3) simpan
-	if err := db.Save(&tanaman).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal update tanaman", err.Error())
-		return
-	}
+    if input.KodeBlok != nil {
+        if kode := strings.TrimSpace(*input.KodeBlok); kode == "" {
+            utils.ErrorResponse(c, http.StatusBadRequest, "kode_blok tidak boleh kosong", nil)
+            return
+        } else {
+            tanaman.KodeBlok = kode
+        }
+    }
 
-	utils.SuccessResponse(c, http.StatusOK, "Tanaman berhasil diperbarui", tanaman)
+    if input.KodeTanaman != nil {
+        if kode := strings.TrimSpace(*input.KodeTanaman); kode == "" {
+            utils.ErrorResponse(c, http.StatusBadRequest, "kode_tanaman tidak boleh kosong", nil)
+            return
+        } else {
+            tanaman.KodeTanaman = kode
+        }
+    }
+
+    if input.MasaProduksi != nil {
+        if *input.MasaProduksi <= 0 {
+            utils.ErrorResponse(c, http.StatusBadRequest, "masa_produksi harus lebih dari 0", nil)
+            return
+        }
+        tanaman.MasaProduksi = *input.MasaProduksi
+    }
+
+    fileHeader, _ := c.FormFile("foto_tanaman")
+    if fileHeader != nil {
+        newURL, newPublicID, uploadErr := utils.AsyncUploadOptionalImage(fileHeader, "tanaman")
+        if uploadErr != nil {
+            utils.ErrorResponse(c, http.StatusBadRequest, "Upload foto gagal", uploadErr.Error())
+            return
+        }
+
+        if tanaman.FotoTanamanID != "" {
+            if err := utils.DeleteCloudinaryAsset(tanaman.FotoTanamanID); err != nil {
+                utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal menghapus foto lama", err.Error())
+                return
+            }
+        }
+
+        tanaman.FotoTanaman = newURL
+        tanaman.FotoTanamanID = newPublicID
+    }
+
+    if err := db.Save(&tanaman).Error; err != nil {
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal update tanaman", err.Error())
+        return
+    }
+
+    utils.SuccessResponse(c, http.StatusOK, "Tanaman berhasil diperbarui", tanaman)
 }
 
 // DELETE /tanaman/:id
 func DeleteTanaman(c *gin.Context) {
+    db, err := config.DbConnect()
+    if err != nil {
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
+        return
+    }
+
+    id := c.Param("id")
+
+    var tanaman models.Tanaman
+    if err := db.Preload("Kebun").First(&tanaman, id).Error; err != nil {
+        if err == gorm.ErrRecordNotFound {
+            utils.ErrorResponse(c, http.StatusNotFound, "Tanaman tidak ditemukan", nil)
+            return
+        }
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil tanaman", err.Error())
+        return
+    }
+
+    if tanaman.FotoTanamanID != "" {
+        if err := utils.DeleteCloudinaryAsset(tanaman.FotoTanamanID); err != nil {
+            utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal hapus foto di Cloudinary", err.Error())
+            return
+        }
+    }
+
+    if err := db.Delete(&tanaman).Error; err != nil {
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal hapus tanaman", err.Error())
+        return
+    }
+
+    utils.SuccessResponse(c, http.StatusOK, "Tanaman berhasil dihapus", utils.EmptyObj{})
+}
+
+func GetTanamanByKebunID(c *gin.Context) {
+	idKebun := c.Param("id_kebun")
+
 	db, err := config.DbConnect()
-	if err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
+    if err != nil {
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
+        return
+    }
+
+	// get pagination parameters
+	page, perPage := utils.GetPagination(c)
+	offset := utils.GetOffset(page, perPage)
+
+	// count total rows
+	var totalRows int64
+	if err := db.Model(&models.Tanaman{}).Joins("Tanaman").Where("tanaman.kebun_id = ?", idKebun).Count(&totalRows).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count buah data", err.Error())
 		return
 	}
 
-	id := c.Param("id")
+	pagination := utils.CalculatePagination(page, perPage, totalRows)
+    if page > pagination.TotalPages && pagination.TotalPages > 0 {
+        utils.ErrorResponseWithData(c, http.StatusBadRequest,
+            fmt.Sprintf("Page %d out of range. Only %d pages are available", page, pagination.TotalPages),
+            nil,
+            "Page out of range",
+        )
+        return
+    }
 
-	var tanaman models.Tanaman
-	if err := db.First(&tanaman, id).Preload("Kebun").Error; err != nil {
-		if err == gorm.ErrRecordNotFound {
-			utils.ErrorResponse(c, http.StatusNotFound, "Tanaman tidak ditemukan", nil)
-			return
-		}
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil tanaman", err.Error())
+	var tanamanList []models.Tanaman
+	if err := db.Model(&models.Tanaman{}).Joins("Kebun").Where("tanaman.kebun_id = ?", idKebun).
+        Preload("Tanaman").
+        Offset(offset).
+        Find(&tanamanList).Error ;err != nil {
+        
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrive tanaman data", err.Error())
 		return
-	}
+    }
 
-	if err := db.Delete(&tanaman).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal hapus tanaman", err.Error())
-		return
-	}
-
-	utils.SuccessResponse(c, http.StatusOK, "Tanaman berhasil dihapus", nil)
+	utils.SuccessResponseWithMeta(c, http.StatusOK, "Tanaman data retrieved successfully", tanamanList, pagination)
 }
