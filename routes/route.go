@@ -14,7 +14,7 @@ func InitRoutes() *gin.Engine {
 
 	// setting cors
 	r.Use(cors.New(cors.Config{
-		AllowAllOrigins:  true,
+		AllowOrigins:  	  []string{"https://localhost:5173"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
         AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
         ExposeHeaders:    []string{"Content-Length"},
