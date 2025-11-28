@@ -135,6 +135,49 @@ info:
   title: Avocycle API
   version: "1.0"
 paths:
+  /auth/{provider}/callback/pembeli:
+    get:
+      description: "Handle Google OAuth callback and return JWT token for Pembeli.\n\nSetelah
+        login dengan Google, browser akan menampilkan JSON berikut:\n\n{\n\"action\":
+        \"google auth pembeli\",\n\"data\": {\n. \t\"ID\": 0,\n. \t\"CreatedAt\":
+        \"2025-11-27T23:00:09.5797085-08:00\",\n. \t\"UpdatedAt\": \"2025-11-27T23:00:09.5797085-08:00\",\n.
+        \t\"DeletedAt\": null,\n. \t\"fullname\": \"John Doe\",\n.     \"phone\":
+        \"\",\n. \t\"email\": \"test123@gmail.com\",\n. \t\"password\": \"\",\n. \t\"auth_provider\":
+        \"Google\",\n. \t\"provider_id\": \"110xxxxxxxxxxx\",\n. \t\"role\": \"Pembeli\"\n.\t\t},\n\"jwtToken\":
+        \"eyJhbGciOiJIUzI1NiI....\",\n\"success\": true,\n\"token_google\": {\n. \t\"access_token\":
+        \"ya29.A0ATi6K....\",\n. \t\"token_type\": \"Bearer\",\n. \t\"expiry\": \"2025-11-28T00:00:08.0994068-08:00\",\n.
+        \t\"expires_in\": 3599\n.    }\n}"
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login success
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Google OAuth Callback (Pembeli)
+      tags:
+      - Auth Pembeli with Google
+  /auth/google/pembeli:
+    get:
+      description: |-
+        This endpoint will redirect users to Google Sign-in page in browser.
+
+        ⚠ Cannot be tested directly via Swagger or Postman.
+
+        Please open this URL in a normal browser instead:
+
+        http://localhost:2005/api/v1/auth/google/pembeli
+      produces:
+      - application/json
+      responses:
+        "302":
+          description: Redirect to Google OAuth
+          schema:
+            type: string
+      summary: Login via Google OAuth (Pembeli)
+      tags:
+      - Auth Pembeli with Google
   /kebun:
     get:
       description: Mengambil daftar kebun dengan pagination (menggunakan meta pagination
