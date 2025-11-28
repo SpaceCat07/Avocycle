@@ -23,6 +23,63 @@ import (
 	"google.golang.org/api/option"
 )
 
+// @Definitions
+// --- Struktur Helper untuk Anotasi Swagger ---
+
+// LogPenyakitTanamanCustom dibuat eksplisit agar Swag tidak mencari gorm.Model
+type LogPenyakitTanamanCustom struct {
+    ID                uint      `json:"ID" example:"1"`
+    CreatedAt         time.Time `json:"CreatedAt" example:"2025-11-28T08:37:35.000000000+07:00"`
+    UpdatedAt         time.Time `json:"UpdatedAt" example:"2025-11-28T08:37:35.000000000+07:00"`
+    TanamanID         uint      `json:"tanaman_id" example:"1"`
+    PenyakitID        uint      `json:"penyakit_id" example:"2"`
+    Kondisi           string    `json:"kondisi" example:"Parah"`
+    SaranPerawatan    string    `json:"saran_perawatan" example:"Tingkatkan sirkulasi udara."`
+    Foto              string    `json:"foto" example:"https://cloudinary.com/url..."`
+    FotoLogPenyakitID string    `json:"foto_log_penyakit_id" example:"public_id_abc"`
+}
+
+// ClassifyPenyakitData menggunakan struktur custom di atas.
+type ClassifyPenyakitData struct {
+    NamaPenyakit     string                   `json:"nama_penyakit" example:"Antraknosa"`
+    Deskripsi        string                   `json:"deskripsi" example:"Penyakit jamur yang menyebabkan bercak hitam."`
+    Kondisi          string                   `json:"kondisi" example:"Sedang"`
+    SaranPerawatan   string                   `json:"saran_perawatan" example:"Aplikasikan fungisida berbahan dasar tembaga."`
+    Log              LogPenyakitTanamanCustom `json:"log"` // <-- Ganti models.LogPenyakitTanaman
+}
+
+// SuccessResponseWrapper mereplikasi utils.Response untuk kasus sukses.
+// Ini digunakan oleh anotasi @Success 200.
+type SuccessResponseWrapper struct {
+    Success bool                 `json:"success" example:"true"`
+    Message string               `json:"message" example:"Klasifikasi berhasil"`
+    Data    ClassifyPenyakitData `json:"data"`
+    Meta    interface{}          `json:"meta,omitempty"`
+}
+
+// ErrorResponseWrapper mereplikasi utils.Response untuk kasus error.
+// Ini digunakan oleh anotasi @Failure 400 dan 500.
+type ErrorResponseWrapper struct {
+    Success bool        `json:"success" example:"false"`
+    Message string      `json:"message" example:"Proses klasifikasi atau upload gagal"`
+    // UBAH DARI interface{} (any) KE string
+    Error   string      `json:"error,omitempty" example:"Gagal parsing hasil Gemini: invalid character..."` 
+    Data    interface{} `json:"data,omitempty"`
+    Meta    interface{} `json:"meta,omitempty"` 
+}
+
+// @Summary Klasifikasi Penyakit Tanaman Alpukat
+// @Description Menerima foto tanaman alpukat, mengklasifikasikan penyakit menggunakan Gemini AI, mengunggah foto, dan menyimpan log ke database.
+// @Tags Petani & Admin (Deteksi)
+// @Accept multipart/form-data
+// @Produce json
+// @Security Bearer
+// @Param id_tanaman path int true "ID Tanaman yang ingin diklasifikasi penyakitnya"
+// @Param foto_tanaman formData file true "Foto daun atau bagian tanaman yang sakit (JPG, PNG, dll.)"
+// @Success 200 {object} controllers.SuccessResponseWrapper "Klasifikasi berhasil" // <-- Menggunakan wrapper dari package controllers
+// @Failure 400 {object} controllers.ErrorResponseWrapper "ID tanaman tidak valid atau Foto tanaman wajib diunggah" // <-- Menggunakan wrapper dari package controllers
+// @Failure 500 {object} controllers.ErrorResponseWrapper "Gagal konek DB, Inisialisasi Gemini gagal, Proses klasifikasi atau upload gagal, atau Gagal menyimpan data" // <-- Menggunakan wrapper dari package controllers
+// @Router /petamin/penyakit/{id_tanaman} [post]
 func ClassifyPenyakit(c *gin.Context) {
 	// ambil id tanaman dari parameter url
 	idTanaman := c.Param("id_tanaman")
@@ -134,6 +191,18 @@ func ClassifyPenyakit(c *gin.Context) {
 		}
 
 		text := cleanupGeminiJSON(extractText(resp))
+
+		// --- LOGGING TAMBAHAN UNTUK DEBUGGING ---
+		fmt.Printf("DEBUG: Gemini Raw Text Result: \n%s\n", text)
+		// --- END LOGGING ---
+
+		// Cek apakah hasil yang dibersihkan terlihat seperti JSON
+		if !strings.HasPrefix(text, "{") {
+			// Jika tidak diawali kurung kurawal, ini adalah kegagalan format.
+			// Kembalikan error dengan hasil teks mentah dari Gemini.
+			return fmt.Errorf("Gemini tidak mengembalikan JSON yang valid. Output: %s", text)
+		}
+
 		if err := json.Unmarshal([]byte(text), &classifyResult); err != nil {
 			return fmt.Errorf("Gagal parsing hasil Gemini: %w", err)
 		}
@@ -177,6 +246,20 @@ func ClassifyPenyakit(c *gin.Context) {
 	if err := db.Create(&logPenyakit).Error; err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal menyimpan log penyakit", err.Error())
         return
+	}
+
+	// ===============================================
+	// === START: TAMBAHAN KODE UNTUK PRELOAD RELASI ===
+	// ===============================================
+
+	// Ambil kembali logPenyakit yang baru dibuat, sambil memuat relasi Tanaman dan Penyakit
+	if err := db.
+		Preload("Tanaman.Kebun").  // Preload Tanaman, dan di dalamnya Preload Kebun
+		Preload("Penyakit").       // Preload Penyakit
+		First(&logPenyakit, logPenyakit.ID).Error; err != nil {
+			// Jika gagal preload, kita log errornya tapi mungkin tetap mengirim response tanpa data lengkap
+			fmt.Println("Warning: Gagal preload relasi logPenyakit:", err)
+			// Lanjutkan tanpa return error, agar response sukses tetap terkirim
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, "Klasifikasi berhasil", gin.H{

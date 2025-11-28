@@ -99,7 +99,7 @@ func InitRoutes() *gin.Engine {
 		petaniAdminRoutes.Use(middleware.RoleMiddleware("Petani", "Admin"))
 		{
 			// deteksi penyakit tanaman
-			petaniAdminRoutes.POST("/penyakit", controllers.ClassifyPenyakit)
+			petaniAdminRoutes.POST("/penyakit/:id_tanaman", controllers.ClassifyPenyakit)
 		}
 
 		// middleware khusus Pembeli

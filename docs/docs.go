@@ -733,6 +733,62 @@ const docTemplate = `{
                 }
             }
         },
+        "/petamin/penyakit/{id_tanaman}": {
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Menerima foto tanaman alpukat, mengklasifikasikan penyakit menggunakan Gemini AI, mengunggah foto, dan menyimpan log ke database.",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Petani \u0026 Admin (Deteksi)"
+                ],
+                "summary": "Klasifikasi Penyakit Tanaman Alpukat",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Tanaman yang ingin diklasifikasi penyakitnya",
+                        "name": "id_tanaman",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "file",
+                        "description": "Foto daun atau bagian tanaman yang sakit (JPG, PNG, dll.)",
+                        "name": "foto_tanaman",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Klasifikasi berhasil\" // \u003c-- Menggunakan wrapper dari package controllers",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.SuccessResponseWrapper"
+                        }
+                    },
+                    "400": {
+                        "description": "ID tanaman tidak valid atau Foto tanaman wajib diunggah\" // \u003c-- Menggunakan wrapper dari package controllers",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ErrorResponseWrapper"
+                        }
+                    },
+                    "500": {
+                        "description": "Gagal konek DB, Inisialisasi Gemini gagal, Proses klasifikasi atau upload gagal, atau Gagal menyimpan data\" // \u003c-- Menggunakan wrapper dari package controllers",
+                        "schema": {
+                            "$ref": "#/definitions/controllers.ErrorResponseWrapper"
+                        }
+                    }
+                }
+            }
+        },
         "/petani/buah": {
             "get": {
                 "security": [
@@ -1506,6 +1562,96 @@ const docTemplate = `{
                 }
             }
         },
+        "controllers.ClassifyPenyakitData": {
+            "type": "object",
+            "properties": {
+                "deskripsi": {
+                    "type": "string",
+                    "example": "Penyakit jamur yang menyebabkan bercak hitam."
+                },
+                "kondisi": {
+                    "type": "string",
+                    "example": "Sedang"
+                },
+                "log": {
+                    "description": "\u003c-- Ganti models.LogPenyakitTanaman",
+                    "allOf": [
+                        {
+                            "$ref": "#/definitions/controllers.LogPenyakitTanamanCustom"
+                        }
+                    ]
+                },
+                "nama_penyakit": {
+                    "type": "string",
+                    "example": "Antraknosa"
+                },
+                "saran_perawatan": {
+                    "type": "string",
+                    "example": "Aplikasikan fungisida berbahan dasar tembaga."
+                }
+            }
+        },
+        "controllers.ErrorResponseWrapper": {
+            "type": "object",
+            "properties": {
+                "data": {},
+                "error": {
+                    "description": "UBAH DARI interface{} (any) KE string",
+                    "type": "string",
+                    "example": "Gagal parsing hasil Gemini: invalid character..."
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Proses klasifikasi atau upload gagal"
+                },
+                "meta": {},
+                "success": {
+                    "type": "boolean",
+                    "example": false
+                }
+            }
+        },
+        "controllers.LogPenyakitTanamanCustom": {
+            "type": "object",
+            "properties": {
+                "CreatedAt": {
+                    "type": "string",
+                    "example": "2025-11-28T08:37:35.000000000+07:00"
+                },
+                "ID": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "UpdatedAt": {
+                    "type": "string",
+                    "example": "2025-11-28T08:37:35.000000000+07:00"
+                },
+                "foto": {
+                    "type": "string",
+                    "example": "https://cloudinary.com/url..."
+                },
+                "foto_log_penyakit_id": {
+                    "type": "string",
+                    "example": "public_id_abc"
+                },
+                "kondisi": {
+                    "type": "string",
+                    "example": "Parah"
+                },
+                "penyakit_id": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "saran_perawatan": {
+                    "type": "string",
+                    "example": "Tingkatkan sirkulasi udara."
+                },
+                "tanaman_id": {
+                    "type": "integer",
+                    "example": 1
+                }
+            }
+        },
         "controllers.LoginRequest": {
             "type": "object",
             "properties": {
@@ -1537,6 +1683,23 @@ const docTemplate = `{
                 "phone": {
                     "type": "string",
                     "example": "08123456789"
+                }
+            }
+        },
+        "controllers.SuccessResponseWrapper": {
+            "type": "object",
+            "properties": {
+                "data": {
+                    "$ref": "#/definitions/controllers.ClassifyPenyakitData"
+                },
+                "message": {
+                    "type": "string",
+                    "example": "Klasifikasi berhasil"
+                },
+                "meta": {},
+                "success": {
+                    "type": "boolean",
+                    "example": true
                 }
             }
         },

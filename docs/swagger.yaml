@@ -9,6 +9,70 @@ definitions:
         example: 1
         type: integer
     type: object
+  controllers.ClassifyPenyakitData:
+    properties:
+      deskripsi:
+        example: Penyakit jamur yang menyebabkan bercak hitam.
+        type: string
+      kondisi:
+        example: Sedang
+        type: string
+      log:
+        allOf:
+        - $ref: '#/definitions/controllers.LogPenyakitTanamanCustom'
+        description: <-- Ganti models.LogPenyakitTanaman
+      nama_penyakit:
+        example: Antraknosa
+        type: string
+      saran_perawatan:
+        example: Aplikasikan fungisida berbahan dasar tembaga.
+        type: string
+    type: object
+  controllers.ErrorResponseWrapper:
+    properties:
+      data: {}
+      error:
+        description: UBAH DARI interface{} (any) KE string
+        example: 'Gagal parsing hasil Gemini: invalid character...'
+        type: string
+      message:
+        example: Proses klasifikasi atau upload gagal
+        type: string
+      meta: {}
+      success:
+        example: false
+        type: boolean
+    type: object
+  controllers.LogPenyakitTanamanCustom:
+    properties:
+      CreatedAt:
+        example: "2025-11-28T08:37:35.000000000+07:00"
+        type: string
+      ID:
+        example: 1
+        type: integer
+      UpdatedAt:
+        example: "2025-11-28T08:37:35.000000000+07:00"
+        type: string
+      foto:
+        example: https://cloudinary.com/url...
+        type: string
+      foto_log_penyakit_id:
+        example: public_id_abc
+        type: string
+      kondisi:
+        example: Parah
+        type: string
+      penyakit_id:
+        example: 2
+        type: integer
+      saran_perawatan:
+        example: Tingkatkan sirkulasi udara.
+        type: string
+      tanaman_id:
+        example: 1
+        type: integer
+    type: object
   controllers.LoginRequest:
     properties:
       email:
@@ -32,6 +96,18 @@ definitions:
       phone:
         example: "08123456789"
         type: string
+    type: object
+  controllers.SuccessResponseWrapper:
+    properties:
+      data:
+        $ref: '#/definitions/controllers.ClassifyPenyakitData'
+      message:
+        example: Klasifikasi berhasil
+        type: string
+      meta: {}
+      success:
+        example: true
+        type: boolean
     type: object
   controllers.UpdateKebunRequest:
     properties:
@@ -623,6 +699,47 @@ paths:
       summary: Get booking list by user ID
       tags:
       - Booking
+  /petamin/penyakit/{id_tanaman}:
+    post:
+      consumes:
+      - multipart/form-data
+      description: Menerima foto tanaman alpukat, mengklasifikasikan penyakit menggunakan
+        Gemini AI, mengunggah foto, dan menyimpan log ke database.
+      parameters:
+      - description: ID Tanaman yang ingin diklasifikasi penyakitnya
+        in: path
+        name: id_tanaman
+        required: true
+        type: integer
+      - description: Foto daun atau bagian tanaman yang sakit (JPG, PNG, dll.)
+        in: formData
+        name: foto_tanaman
+        required: true
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Klasifikasi berhasil" // <-- Menggunakan wrapper dari package
+            controllers
+          schema:
+            $ref: '#/definitions/controllers.SuccessResponseWrapper'
+        "400":
+          description: ID tanaman tidak valid atau Foto tanaman wajib diunggah" //
+            <-- Menggunakan wrapper dari package controllers
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponseWrapper'
+        "500":
+          description: Gagal konek DB, Inisialisasi Gemini gagal, Proses klasifikasi
+            atau upload gagal, atau Gagal menyimpan data" // <-- Menggunakan wrapper
+            dari package controllers
+          schema:
+            $ref: '#/definitions/controllers.ErrorResponseWrapper'
+      security:
+      - Bearer: []
+      summary: Klasifikasi Penyakit Tanaman Alpukat
+      tags:
+      - Petani & Admin (Deteksi)
   /petani/buah:
     get:
       description: Retrieve paginated list of buah
