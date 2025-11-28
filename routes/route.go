@@ -1,14 +1,30 @@
 package routes
 
 import (
+	_ "Avocycle/docs"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	swaggerFiles "github.com/swaggo/files"
 	"Avocycle/controllers"
 	"Avocycle/middleware"
+	"time"
 
+	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
 )
 
 func InitRoutes() *gin.Engine {
 	r := gin.Default()
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
+	// setting cors
+	r.Use(cors.New(cors.Config{
+		AllowOrigins:  	  []string{"https://localhost:5173"},
+		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
+        AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+        ExposeHeaders:    []string{"Content-Length"},
+        AllowCredentials: true,
+        MaxAge:           12 * time.Hour,
+	}))
 
 	// url api v1
 	api := r.Group("/api/v1")
@@ -34,9 +50,57 @@ func InitRoutes() *gin.Engine {
 		api.POST("/tanaman", middleware.RoleMiddleware("Petani", "Admin"),controllers.CreateTanaman)
 		api.GET("/tanaman", controllers.GetAllTanaman)
 		api.GET("/tanaman/:id", controllers.GetTanamanByID)
+		api.GET("/tanaman/by-kebun/:id_kebun", controllers.GetTanamanByKebunID)
 		api.PUT("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.UpdateTanaman)
 		api.DELETE("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.DeleteTanaman)
 
+		// log penyakit tanaman
+		api.GET("/Log-Penyakit-Tanaman", controllers.GetAllLogPenyakit)
+		api.GET("/Log-Penyakit-Tanaman/:id", controllers.GetLogPenyakitById)
+		api.GET("/Log-Penyakit-Tanaman/Tanaman/:id_tanaman", controllers.GetLogPenyakitByTanamanId)
+
+		petaniRoutes := api.Group("/petani")
+		petaniRoutes.Use(middleware.RoleMiddleware("Petani"))
+		{
+			// CRUD Buah
+            petaniRoutes.POST("/buah", controllers.CreateBuah)
+            petaniRoutes.GET("/buah", controllers.GetAllBuah)
+            petaniRoutes.GET("/buah/:id", controllers.GetBuahByID)
+      			petaniRoutes.GET("/buah/by-tanaman/:id_kebun", controllers.GetBuahByKebun)
+            petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
+            petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
+
+			// CRUD Fase Bunga
+			petaniRoutes.POST("/fase-bunga", controllers.CreateFaseBunga)
+			petaniRoutes.GET("/fase-bunga", controllers.GetAllFaseBunga)
+			petaniRoutes.GET("/fase-bunga/:id", controllers.GetFaseBungaByID)
+			petaniRoutes.PUT("/fase-bunga/:id", controllers.UpdateFaseBunga)
+			petaniRoutes.DELETE("/fase-bunga/:id", controllers.DeleteFaseBunga)
+			petaniRoutes.GET("/fase-bunga/tanaman/:tanaman_id", controllers.GetFaseBungaByTanaman)
+
+			// CRUD Fase Berbuah
+			petaniRoutes.POST("/fase-berbuah", controllers.CreateFaseBuah)
+			petaniRoutes.GET("/fase-berbuah", controllers.GetAllFaseBuah)
+			petaniRoutes.GET("/fase-berbuah/:id", controllers.GetFaseBuahByID)
+			petaniRoutes.PUT("/fase-berbuah/:id", controllers.UpdateFaseBuah)
+			petaniRoutes.DELETE("/fase-berbuah/:id", controllers.DeleteFaseBuah)
+			petaniRoutes.GET("/fase-berbuah/tanaman/:tanaman_id", controllers.GetFaseBuahByTanaman)
+
+			// CRUD Fase Panen
+			petaniRoutes.POST("/fase-panen", controllers.CreateFasePanen)
+			petaniRoutes.GET("/fase-panen", controllers.GetAllFasePanen)
+			petaniRoutes.GET("/fase-panen/:id", controllers.GetFasePanenByID)
+			petaniRoutes.PUT("/fase-panen/:id", controllers.UpdateFasePanen)
+			petaniRoutes.DELETE("/fase-panen/:id", controllers.DeleteFasePanen)
+			petaniRoutes.GET("/fase-panen/tanaman/:tanaman_id", controllers.GetFasePanenByTanaman)
+		}
+
+		petaniAdminRoutes := api.Group("/petamin")
+		petaniAdminRoutes.Use(middleware.RoleMiddleware("Petani", "Admin"))
+		{
+			// deteksi penyakit tanaman
+			petaniAdminRoutes.POST("/penyakit", controllers.ClassifyPenyakit)
+		}
 	}
 
 	// cek ketersediaan api
