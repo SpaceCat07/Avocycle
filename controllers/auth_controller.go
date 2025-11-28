@@ -12,6 +12,31 @@ import (
 	"gorm.io/gorm"
 )
 
+// RegisterRequest struct for registration request body
+type RegisterRequest struct {
+    FullName string `json:"full_name" example:"John Doe"`
+    Email    string `json:"email" example:"john@example.com"`
+    Phone    string `json:"phone" example:"08123456789"`
+    Password string `json:"password" example:"secret123"`
+}
+
+// LoginRequest struct for login request body
+type LoginRequest struct {
+    Email    string `json:"email" example:"john@example.com"`
+    Password string `json:"password" example:"secret123"`
+}
+
+// ManualRegisterPetani godoc
+// @Summary Register Petani
+// @Description Register petani menggunakan credential lokal
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param user body RegisterRequest true "Register Petani"
+// @Success 201 {object} map[string]interface{} "Registered successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid input"
+// @Failure 409 {object} map[string]interface{} "Email or phone already exists"
+// @Router /register/petani [post]
 func ManualRegisterPetani(c *gin.Context) {
 	var requestBody struct {
         FullName string `json:"full_name" binding:"required"`
@@ -119,6 +144,17 @@ func ManualRegisterPetani(c *gin.Context) {
     })
 }
 
+// ManualRegisterPembeli godoc
+// @Summary Register Pembeli
+// @Description Register pembeli menggunakan credential lokal
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param user body RegisterRequest true "Register Pembeli"
+// @Success 201 {object} map[string]interface{} "Registered successfully"
+// @Failure 400 {object} map[string]interface{} "Invalid input"
+// @Failure 409 {object} map[string]interface{} "Email or phone already exists"
+// @Router /register/pembeli [post]
 func ManualRegisterPembeli(c *gin.Context) {
 	var requestBody struct {
         FullName string `json:"full_name" binding:"required"`
@@ -226,6 +262,17 @@ func ManualRegisterPembeli(c *gin.Context) {
     })
 }
 
+// ManualLogin godoc
+// @Summary Login user
+// @Description Login user menggunakan email dan password
+// @Tags Auth
+// @Accept json
+// @Produce json
+// @Param user body LoginRequest true "Login credentials"
+// @Success 200 {object} map[string]interface{} "Login success with JWT"
+// @Failure 400 {object} map[string]interface{} "Invalid input"
+// @Failure 401 {object} map[string]interface{} "Wrong credentials"
+// @Router /login [post]
 func ManualLogin(c *gin.Context) {
 	var requestBody struct {
 		Email string `json:"email" binding:"required"`

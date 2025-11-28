@@ -1,0 +1,1032 @@
+basePath: /api/v1
+definitions:
+  controllers.BookingRequest:
+    properties:
+      tanaman_id:
+        example: 10
+        type: integer
+      user_id:
+        example: 1
+        type: integer
+    type: object
+  controllers.LoginRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      password:
+        example: secret123
+        type: string
+    type: object
+  controllers.RegisterRequest:
+    properties:
+      email:
+        example: john@example.com
+        type: string
+      full_name:
+        example: John Doe
+        type: string
+      password:
+        example: secret123
+        type: string
+      phone:
+        example: "08123456789"
+        type: string
+    type: object
+  models.SwaggerBooking:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
+      tanaman:
+        $ref: '#/definitions/models.SwaggerTanaman'
+      tanaman_id:
+        type: integer
+      updated_at:
+        type: string
+      user:
+        $ref: '#/definitions/models.SwaggerUser'
+      user_id:
+        type: integer
+    type: object
+  models.SwaggerKebun:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      id:
+        type: integer
+      lokasi:
+        type: string
+      nama:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.SwaggerTanaman:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      harga:
+        type: integer
+      id:
+        type: integer
+      kebun:
+        $ref: '#/definitions/models.SwaggerKebun'
+      kebun_id:
+        type: integer
+      nama:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  models.SwaggerUser:
+    properties:
+      created_at:
+        type: string
+      deleted_at:
+        type: string
+      email:
+        type: string
+      id:
+        type: integer
+      name:
+        type: string
+      role:
+        type: string
+      updated_at:
+        type: string
+    type: object
+  utils.Pagination:
+    properties:
+      has_next:
+        type: boolean
+      has_prev:
+        type: boolean
+      page:
+        type: integer
+      per_page:
+        type: integer
+      total_pages:
+        type: integer
+      total_rows:
+        type: integer
+    type: object
+  utils.Response:
+    properties:
+      data: {}
+      error: {}
+      message:
+        type: string
+      meta: {}
+      success:
+        type: boolean
+    type: object
+host: localhost:2005
+info:
+  contact: {}
+  description: Dokumentasi API Avocycle (CRUD, Pagination, dan Response Format)
+  title: Avocycle API
+  version: "1.0"
+paths:
+  /kebun:
+    get:
+      description: Mengambil daftar kebun dengan pagination (menggunakan meta pagination
+        sesuai utils Pagination)
+      parameters:
+      - description: Halaman
+        in: query
+        name: page
+        type: integer
+      - description: Jumlah data per halaman
+        in: query
+        name: per_page
+        type: integer
+      responses:
+        "200":
+          description: Data kebun berhasil diambil
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Ambil semua kebun
+      tags:
+      - Kebun
+    post:
+      consumes:
+      - application/json
+      description: Membuat data kebun baru (response mengikuti utils.Response)
+      parameters:
+      - description: Input kebun
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            mdpl:
+              type: string
+            nama_kebun:
+              type: string
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Membuat kebun baru
+      tags:
+      - Kebun
+  /kebun/{id}:
+    delete:
+      description: Menghapus data kebun berdasarkan ID
+      parameters:
+      - description: ID Kebun
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Hapus kebun
+      tags:
+      - Kebun
+    get:
+      description: Mengambil detail kebun berdasarkan ID
+      parameters:
+      - description: ID Kebun
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Ambil detail kebun
+      tags:
+      - Kebun
+    put:
+      consumes:
+      - application/json
+      description: Mengupdate data kebun berdasarkan ID (partial update)
+      parameters:
+      - description: ID Kebun
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Input update
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Update kebun
+      tags:
+      - Kebun
+  /login:
+    post:
+      consumes:
+      - application/json
+      description: Login user menggunakan email dan password
+      parameters:
+      - description: Login credentials
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.LoginRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Login success with JWT
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "401":
+          description: Wrong credentials
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Login user
+      tags:
+      - Auth
+  /pembeli/booking:
+    get:
+      description: Retrieve paginated list of booking (hanya untuk role Pembeli)
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.SwaggerBooking'
+                  type: array
+                meta:
+                  $ref: '#/definitions/utils.Pagination'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get all booking with pagination
+      tags:
+      - Booking
+    post:
+      consumes:
+      - application/json
+      description: Booking action by pembeli
+      parameters:
+      - description: Booking input
+        in: body
+        name: booking
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.BookingRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.SwaggerBooking'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Create a new booking
+      tags:
+      - Booking
+  /pembeli/booking/{id}:
+    delete:
+      description: Delete action for booking (role Pembeli)
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Delete booking by ID
+      tags:
+      - Booking
+    get:
+      description: Retrieve detail booking by ID (role Pembeli)
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.SwaggerBooking'
+              type: object
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get booking by ID
+      tags:
+      - Booking
+    put:
+      consumes:
+      - application/json
+      description: Update booking by ID (role Pembeli)
+      parameters:
+      - description: Booking ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Booking input
+        in: body
+        name: booking
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.BookingRequest'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/models.SwaggerBooking'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Update existing booking
+      tags:
+      - Booking
+  /pembeli/booking/user/{user_id}:
+    get:
+      description: Retrieve user's booking list with pagination
+      parameters:
+      - description: User ID
+        in: path
+        name: user_id
+        required: true
+        type: integer
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/models.SwaggerBooking'
+                  type: array
+                meta:
+                  $ref: '#/definitions/utils.Pagination'
+              type: object
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get booking list by user ID
+      tags:
+      - Booking
+  /petani/buah:
+    get:
+      description: Retrieve paginated list of buah
+      parameters:
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get all buah with pagination
+      tags:
+      - Buah
+    post:
+      consumes:
+      - application/json
+      parameters:
+      - description: Buah Data
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            nama_buah:
+              type: string
+            tanaman_id:
+              type: integer
+          type: object
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Create a new buah
+      tags:
+      - Buah
+  /petani/buah/{id}:
+    delete:
+      parameters:
+      - description: Buah ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Delete buah
+      tags:
+      - Buah
+    get:
+      parameters:
+      - description: Buah ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get buah by ID
+      tags:
+      - Buah
+    put:
+      consumes:
+      - application/json
+      parameters:
+      - description: Buah ID
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Updated Buah Data
+        in: body
+        name: request
+        required: true
+        schema:
+          properties:
+            nama_buah:
+              type: string
+            tanaman_id:
+              type: integer
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Update buah
+      tags:
+      - Buah
+  /petani/buah/kebun/{id_kebun}:
+    get:
+      description: Retrieve buah based on related tanaman kebun
+      parameters:
+      - description: Kebun ID
+        in: path
+        name: id_kebun
+        required: true
+        type: integer
+      - description: Page number
+        in: query
+        name: page
+        type: integer
+      - description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get buah by kebun ID with pagination
+      tags:
+      - Buah
+  /register/pembeli:
+    post:
+      consumes:
+      - application/json
+      description: Register pembeli menggunakan credential lokal
+      parameters:
+      - description: Register Pembeli
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Registered successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Email or phone already exists
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register Pembeli
+      tags:
+      - Auth
+  /register/petani:
+    post:
+      consumes:
+      - application/json
+      description: Register petani menggunakan credential lokal
+      parameters:
+      - description: Register Petani
+        in: body
+        name: user
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.RegisterRequest'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Registered successfully
+          schema:
+            additionalProperties: true
+            type: object
+        "400":
+          description: Invalid input
+          schema:
+            additionalProperties: true
+            type: object
+        "409":
+          description: Email or phone already exists
+          schema:
+            additionalProperties: true
+            type: object
+      summary: Register Petani
+      tags:
+      - Auth
+  /tanaman:
+    get:
+      description: Mengambil daftar tanaman dengan pagination
+      parameters:
+      - description: Halaman
+        in: query
+        name: page
+        type: integer
+      - description: Jumlah data per halaman
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Ambil semua tanaman
+      tags:
+      - Tanaman
+    post:
+      consumes:
+      - multipart/form-data
+      description: Menambahkan tanaman baru
+      parameters:
+      - description: Nama Tanaman
+        in: formData
+        name: nama_tanaman
+        required: true
+        type: string
+      - description: Varietas
+        in: formData
+        name: varietas
+        required: true
+        type: string
+      - description: Tanggal Tanam (YYYY-MM-DD)
+        in: formData
+        name: tanggal_tanam
+        required: true
+        type: string
+      - description: ID Kebun
+        in: formData
+        name: kebun_id
+        required: true
+        type: integer
+      - description: Kode Blok
+        in: formData
+        name: kode_blok
+        required: true
+        type: string
+      - description: Kode Tanaman
+        in: formData
+        name: kode_tanaman
+        required: true
+        type: string
+      - description: Masa Produksi
+        in: formData
+        name: masa_produksi
+        required: true
+        type: integer
+      - description: Foto Tanaman
+        in: formData
+        name: foto_tanaman
+        type: file
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Tambah tanaman
+      tags:
+      - Tanaman
+  /tanaman/{id}:
+    delete:
+      description: Menghapus tanaman berdasarkan ID
+      parameters:
+      - description: ID Tanaman
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Hapus tanaman
+      tags:
+      - Tanaman
+    get:
+      description: Mendapatkan detail tanaman berdasarkan ID
+      parameters:
+      - description: ID Tanaman
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Detail tanaman
+      tags:
+      - Tanaman
+    put:
+      consumes:
+      - multipart/form-data
+      description: Mengubah data tanaman (bisa sebagian)
+      parameters:
+      - description: ID Tanaman
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Nama Tanaman
+        in: formData
+        name: nama_tanaman
+        type: string
+      - description: Varietas
+        in: formData
+        name: varietas
+        type: string
+      - description: Tanggal Tanam
+        in: formData
+        name: tanggal_tanam
+        type: string
+      - description: ID Kebun
+        in: formData
+        name: kebun_id
+        type: integer
+      - description: Kode Blok
+        in: formData
+        name: kode_blok
+        type: string
+      - description: Kode Tanaman
+        in: formData
+        name: kode_tanaman
+        type: string
+      - description: Masa Produksi
+        in: formData
+        name: masa_produksi
+        type: integer
+      - description: Foto Tanaman
+        in: formData
+        name: foto_tanaman
+        type: file
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Update tanaman
+      tags:
+      - Tanaman
+  /tanaman/kebun/{id_kebun}:
+    get:
+      description: Ambil data tanaman berdasarkan kebun_id
+      parameters:
+      - description: ID Kebun
+        in: path
+        name: id_kebun
+        required: true
+        type: integer
+      - description: Halaman
+        in: query
+        name: page
+        type: integer
+      - description: Jumlah per halaman
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Tanaman berdasarkan Kebun
+      tags:
+      - Tanaman
+schemes:
+- http
+securityDefinitions:
+  Bearer:
+    description: Type "Bearer <your-token>"
+    in: header
+    name: Authorization
+    type: apiKey
+swagger: "2.0"

@@ -1,6 +1,9 @@
 package routes
 
 import (
+	_ "Avocycle/docs"
+	ginSwagger "github.com/swaggo/gin-swagger"
+	swaggerFiles "github.com/swaggo/files"
 	"Avocycle/controllers"
 	"Avocycle/middleware"
 	"time"
@@ -12,6 +15,7 @@ import (
 func InitRoutes() *gin.Engine {
 	r := gin.Default()
 
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// setting cors
 	r.Use(cors.New(cors.Config{
 		AllowOrigins:  	  []string{"https://localhost:5173"},
@@ -62,7 +66,7 @@ func InitRoutes() *gin.Engine {
             petaniRoutes.POST("/buah", controllers.CreateBuah)
             petaniRoutes.GET("/buah", controllers.GetAllBuah)
             petaniRoutes.GET("/buah/:id", controllers.GetBuahByID)
-			petaniRoutes.GET("/buah/by-tanaman/:id_kebun", controllers.GetBuahByKebun)
+      			petaniRoutes.GET("/buah/by-tanaman/:id_kebun", controllers.GetBuahByKebun)
             petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
             petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
 		}
