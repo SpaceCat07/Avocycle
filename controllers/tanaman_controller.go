@@ -2,8 +2,8 @@ package controllers
 
 import (
 	"fmt"
-	"mime/multipart"
 	"net/http"
+	"strconv"
 	"strings"
 	"time"
 
@@ -66,54 +66,48 @@ func ensureKebunExists(db *gorm.DB, kebunID uint) *string {
 // @Failure 500 {object} utils.Response
 // @Router /tanaman [get]
 func GetAllTanaman(c *gin.Context) {
-	// get pagination parameters
-	page, perPage := utils.GetPagination(c)
-	offset := utils.GetOffset(page, perPage)
-
-	// connect to db
 	db, err := config.DbConnect()
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
 		return
 	}
 
-	// count total rows
-	var totalRows int64
-	if err := db.Model(&models.Tanaman{}).Count(&totalRows).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count tanaman data", err.Error())
-		return
-	} 
+	pageParam := c.DefaultQuery("page", "1")
+	limitParam := c.DefaultQuery("limit", "10")
 
-	// calculate pagination
-	pagination := utils.CalculatePagination(page, perPage, totalRows)
-
-	// validate page range
-	if page > pagination.TotalPages && pagination.TotalPages > 0 {
-		utils.ErrorResponseWithData(c, http.StatusBadRequest,
-		fmt.Sprintf("Page %d out of range. Only %d pages are available", page, pagination.TotalPages),
-		nil,
-		"Page out of range",
-	)
-	return
+	page, err := strconv.Atoi(pageParam)
+	if err != nil || page < 1 {
+		page = 1
 	}
+	limit, err := strconv.Atoi(limitParam)
+	if err != nil || limit < 1 || limit > 100 {
+		limit = 10
+	}
+	offset := (page - 1) * limit
 
-	// get paginated data
-	var tanamanList []models.Tanaman
-	if err := db.Preload("Kebun").
-		Limit(perPage).
-		Offset(offset).
-		Find(&tanamanList).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to retrieve buah data", err.Error())
+	var total int64
+	if err := db.Model(&models.Tanaman{}).Count(&total).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal hitung data", err.Error())
 		return
 	}
 
-	// handle empty data
-	if totalRows == 0 {
-		utils.SuccessResponseWithMeta(c, http.StatusOK, "No tanaman data found", []models.Tanaman{}, pagination)
+	var tanaman []models.Tanaman
+	if err := db.Preload("Kebun").Limit(limit).Offset(offset).Find(&tanaman).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil data tanaman", err.Error())
 		return
 	}
 
-	utils.SuccessResponseWithMeta(c, http.StatusOK, "Tanaman data retrieve successfully", tanamanList, pagination)
+	totalPages := int((total + int64(limit) - 1) / int64(limit))
+
+	utils.SuccessResponse(c, http.StatusOK, "Daftar tanaman", gin.H{
+		"items": tanaman,
+		"pagination": gin.H{
+			"page":        page,
+			"limit":       limit,
+			"total":       total,
+			"total_pages": totalPages,
+		},
+	})
 }
 
 // GET /tanaman/:id
@@ -126,14 +120,13 @@ func GetAllTanaman(c *gin.Context) {
 // @Failure 404 {object} utils.Response
 // @Router /tanaman/{id} [get]
 func GetTanamanByID(c *gin.Context) {
-	id := c.Param("id")
-
 	db, err := config.DbConnect()
 	if err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
 		return
 	}
 
+	id := c.Param("id")
 	var tanaman models.Tanaman
 	if err := db.Preload("Kebun").First(&tanaman, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -215,32 +208,24 @@ func CreateTanaman(c *gin.Context) {
 
 	// 3) map ke model & simpan
 	tanaman := models.Tanaman{
-		NamaTanaman:  input.NamaTanaman,
+		NamaTanaman:  nama,
 		Varietas:     input.Varietas,
 		TanggalTanam: parsedTanggal,
 		KebunID:      input.KebunID,
-		KodeBlok: 	  input.KodeBlok,
-		KodeTanaman:  input.KodeTanaman,
-		MasaProduksi: input.MasaProduksi,
 	}
 
-	fileHeader, _ := c.FormFile("foto_tanaman")
-	if fileHeader != nil {
-		url, publicID, uploadErr := utils.AsyncUploadOptionalImage(fileHeader, "tanaman")
-		if uploadErr != nil {
-            utils.ErrorResponse(c, http.StatusBadRequest, "Upload foto gagal", uploadErr.Error())
-            return
-        }
-        tanaman.FotoTanaman = url
-        tanaman.FotoTanamanID = publicID
-	}
+    if err := db.Create(&tanaman).Error; err != nil {
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal menyimpan tanaman", err.Error())
+        return
+    }
 
-	if err := db.Create(&tanaman).Error; err != nil {
-		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal menyimpan tanaman", err.Error())
-		return
-	}
+    // preload Kebun for response
+    if err := db.Preload("Kebun").First(&tanaman, tanaman.ID).Error; err != nil {
+        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal memuat relasi kebun", err.Error())
+        return
+    }
 
-	utils.SuccessResponse(c, http.StatusCreated, "Tanaman berhasil dibuat", tanaman)
+    utils.SuccessResponse(c, http.StatusCreated, "Tanaman berhasil dibuat", tanaman)
 }
 
 // PUT /tanaman/:id
@@ -380,13 +365,13 @@ func UpdateTanaman(c *gin.Context) {
 // @Failure 404 {object} utils.Response
 // @Router /tanaman/{id} [delete]
 func DeleteTanaman(c *gin.Context) {
-    db, err := config.DbConnect()
-    if err != nil {
-        utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
-        return
-    }
+	db, err := config.DbConnect()
+	if err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal konek DB", err.Error())
+		return
+	}
 
-    id := c.Param("id")
+	id := c.Param("id")
 
     var tanaman models.Tanaman
     if err := db.Preload("Kebun").First(&tanaman, id).Error; err != nil {
