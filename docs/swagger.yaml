@@ -109,6 +109,44 @@ definitions:
         example: true
         type: boolean
     type: object
+  controllers.SwaggerLogPenyakitTanaman:
+    description: Log penyakit terkait tanaman
+    properties:
+      catatan:
+        type: string
+      created_at:
+        type: string
+      foto:
+        type: string
+      foto_log_penyakit_id:
+        type: string
+      id:
+        type: integer
+      kondisi:
+        type: string
+      penyakit_id:
+        type: integer
+      saran_perawatan:
+        type: string
+      tanaman_id:
+        type: integer
+      updated_at:
+        type: string
+    type: object
+  controllers.SwaggerPenyakitTanaman:
+    description: Model untuk data penyakit tanaman
+    properties:
+      created_at:
+        type: string
+      deskripsi:
+        type: string
+      id:
+        type: integer
+      nama_penyakit:
+        type: string
+      updated_at:
+        type: string
+    type: object
   controllers.UpdateKebunRequest:
     properties:
       mdpl:
@@ -186,6 +224,8 @@ definitions:
       updated_at:
         type: string
     type: object
+  utils.EmptyObj:
+    type: object
   utils.Pagination:
     properties:
       has_next:
@@ -218,6 +258,286 @@ info:
   title: Avocycle API
   version: "1.0"
 paths:
+  /Log-Penyakit-Tanaman:
+    get:
+      consumes:
+      - application/json
+      description: Mendapatkan daftar semua log penyakit tanaman dengan pagination
+      parameters:
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Berhasil mengambil data
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/controllers.SwaggerLogPenyakitTanaman'
+                  type: array
+                meta:
+                  $ref: '#/definitions/utils.Pagination'
+              type: object
+        "500":
+          description: Gagal koneksi atau query database
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get all log penyakit tanaman
+      tags:
+      - LogPenyakitTanaman
+  /Log-Penyakit-Tanaman/{id}:
+    get:
+      consumes:
+      - application/json
+      description: Mendapatkan detail log penyakit tanaman berdasarkan ID
+      parameters:
+      - description: ID Log Penyakit Tanaman
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail ditemukan
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/controllers.SwaggerLogPenyakitTanaman'
+              type: object
+        "404":
+          description: Data tidak ditemukan
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Gagal retrieve data
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get log penyakit tanaman by ID
+      tags:
+      - LogPenyakitTanaman
+  /Log-Penyakit-Tanaman/Tanaman/{id_tanaman}:
+    get:
+      consumes:
+      - application/json
+      description: Mendapatkan semua log penyakit berdasarkan tanaman_id dengan pagination
+      parameters:
+      - description: ID Tanaman
+        in: path
+        name: id_tanaman
+        required: true
+        type: integer
+      - default: 1
+        description: Page number
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Items per page
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Berhasil mengambil data
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/controllers.SwaggerLogPenyakitTanaman'
+                  type: array
+                meta:
+                  $ref: '#/definitions/utils.Pagination'
+              type: object
+        "404":
+          description: Data tidak ditemukan
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Gagal koneksi atau query database
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Get log penyakit tanaman by Tanaman ID
+      tags:
+      - LogPenyakitTanaman
+  /api/penyakit:
+    get:
+      consumes:
+      - application/json
+      description: Mengambil semua data penyakit tanaman dengan pagination
+      parameters:
+      - description: Nomor halaman
+        in: query
+        name: page
+        type: integer
+      - description: Jumlah data per halaman
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Data kosong
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/controllers.SwaggerLogPenyakitTanaman'
+                  type: array
+                meta:
+                  $ref: '#/definitions/utils.Pagination'
+              type: object
+        "400":
+          description: Page out of range
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Gagal koneksi DB atau query
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Mendapatkan daftar penyakit tanaman
+      tags:
+      - Penyakit Tanaman
+  /api/penyakit/{id}:
+    delete:
+      consumes:
+      - application/json
+      description: Menghapus data penyakit jika tidak sedang digunakan
+      parameters:
+      - description: ID Penyakit
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Berhasil hapus
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  $ref: '#/definitions/utils.EmptyObj'
+              type: object
+        "404":
+          description: Tidak ditemukan
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "409":
+          description: Masih digunakan di log penyakit tanaman
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Gagal hapus data
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Hapus penyakit tanaman
+      tags:
+      - Penyakit Tanaman
+    get:
+      consumes:
+      - application/json
+      description: Mengambil detail penyakit berdasarkan ID
+      parameters:
+      - description: ID Penyakit
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Detail penyakit tanaman
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/controllers.SwaggerPenyakitTanaman'
+                  type: array
+              type: object
+        "404":
+          description: Penyakit tidak ditemukan
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Gagal ambil data
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Mendapatkan detail penyakit tanaman
+      tags:
+      - Penyakit Tanaman
+    put:
+      consumes:
+      - application/json
+      description: Perbarui data deskripsi penyakit tanaman
+      parameters:
+      - description: ID Penyakit
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Data yang diupdate
+        in: body
+        name: request
+        required: true
+        schema:
+          type: object
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: Berhasil update penyakit
+          schema:
+            allOf:
+            - $ref: '#/definitions/utils.Response'
+            - properties:
+                data:
+                  items:
+                    $ref: '#/definitions/controllers.SwaggerPenyakitTanaman'
+                  type: array
+              type: object
+        "400":
+          description: Input tidak valid
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Penyakit tidak ditemukan
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Gagal update
+          schema:
+            $ref: '#/definitions/utils.Response'
+      summary: Update penyakit tanaman
+      tags:
+      - Penyakit Tanaman
   /auth/{provider}/callback/pembeli:
     get:
       description: "Handle Google OAuth callback and return JWT token for Pembeli.\n\nSetelah

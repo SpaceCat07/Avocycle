@@ -15,6 +15,459 @@ const docTemplate = `{
     "host": "{{.Host}}",
     "basePath": "{{.BasePath}}",
     "paths": {
+        "/Log-Penyakit-Tanaman": {
+            "get": {
+                "description": "Mendapatkan daftar semua log penyakit tanaman dengan pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "LogPenyakitTanaman"
+                ],
+                "summary": "Get all log penyakit tanaman",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil data",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/controllers.SwaggerLogPenyakitTanaman"
+                                            }
+                                        },
+                                        "meta": {
+                                            "$ref": "#/definitions/utils.Pagination"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "500": {
+                        "description": "Gagal koneksi atau query database",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/Log-Penyakit-Tanaman/Tanaman/{id_tanaman}": {
+            "get": {
+                "description": "Mendapatkan semua log penyakit berdasarkan tanaman_id dengan pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "LogPenyakitTanaman"
+                ],
+                "summary": "Get log penyakit tanaman by Tanaman ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Tanaman",
+                        "name": "id_tanaman",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "default": 1,
+                        "description": "Page number",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "default": 10,
+                        "description": "Items per page",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil mengambil data",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/controllers.SwaggerLogPenyakitTanaman"
+                                            }
+                                        },
+                                        "meta": {
+                                            "$ref": "#/definitions/utils.Pagination"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Data tidak ditemukan",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Gagal koneksi atau query database",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/Log-Penyakit-Tanaman/{id}": {
+            "get": {
+                "description": "Mendapatkan detail log penyakit tanaman berdasarkan ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "LogPenyakitTanaman"
+                ],
+                "summary": "Get log penyakit tanaman by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Log Penyakit Tanaman",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail ditemukan",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/controllers.SwaggerLogPenyakitTanaman"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Data tidak ditemukan",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Gagal retrieve data",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/penyakit": {
+            "get": {
+                "description": "Mengambil semua data penyakit tanaman dengan pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Penyakit Tanaman"
+                ],
+                "summary": "Mendapatkan daftar penyakit tanaman",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Nomor halaman",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Jumlah data per halaman",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Data kosong",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/controllers.SwaggerLogPenyakitTanaman"
+                                            }
+                                        },
+                                        "meta": {
+                                            "$ref": "#/definitions/utils.Pagination"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Page out of range",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Gagal koneksi DB atau query",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/api/penyakit/{id}": {
+            "get": {
+                "description": "Mengambil detail penyakit berdasarkan ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Penyakit Tanaman"
+                ],
+                "summary": "Mendapatkan detail penyakit tanaman",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Penyakit",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Detail penyakit tanaman",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/controllers.SwaggerPenyakitTanaman"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Penyakit tidak ditemukan",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Gagal ambil data",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "description": "Perbarui data deskripsi penyakit tanaman",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Penyakit Tanaman"
+                ],
+                "summary": "Update penyakit tanaman",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Penyakit",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Data yang diupdate",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "type": "object"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil update penyakit",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "type": "array",
+                                            "items": {
+                                                "$ref": "#/definitions/controllers.SwaggerPenyakitTanaman"
+                                            }
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "400": {
+                        "description": "Input tidak valid",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Penyakit tidak ditemukan",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Gagal update",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "description": "Menghapus data penyakit jika tidak sedang digunakan",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Penyakit Tanaman"
+                ],
+                "summary": "Hapus penyakit tanaman",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Penyakit",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "Berhasil hapus",
+                        "schema": {
+                            "allOf": [
+                                {
+                                    "$ref": "#/definitions/utils.Response"
+                                },
+                                {
+                                    "type": "object",
+                                    "properties": {
+                                        "data": {
+                                            "$ref": "#/definitions/utils.EmptyObj"
+                                        }
+                                    }
+                                }
+                            ]
+                        }
+                    },
+                    "404": {
+                        "description": "Tidak ditemukan",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "409": {
+                        "description": "Masih digunakan di log penyakit tanaman",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Gagal hapus data",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/auth/google/pembeli": {
             "get": {
                 "description": "This endpoint will redirect users to Google Sign-in page in browser.\n\n⚠ Cannot be tested directly via Swagger or Postman.\n\nPlease open this URL in a normal browser instead:\n\nhttp://localhost:2005/api/v1/auth/google/pembeli",
@@ -1703,6 +2156,63 @@ const docTemplate = `{
                 }
             }
         },
+        "controllers.SwaggerLogPenyakitTanaman": {
+            "description": "Log penyakit terkait tanaman",
+            "type": "object",
+            "properties": {
+                "catatan": {
+                    "type": "string"
+                },
+                "created_at": {
+                    "type": "string"
+                },
+                "foto": {
+                    "type": "string"
+                },
+                "foto_log_penyakit_id": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "kondisi": {
+                    "type": "string"
+                },
+                "penyakit_id": {
+                    "type": "integer"
+                },
+                "saran_perawatan": {
+                    "type": "string"
+                },
+                "tanaman_id": {
+                    "type": "integer"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
+        "controllers.SwaggerPenyakitTanaman": {
+            "description": "Model untuk data penyakit tanaman",
+            "type": "object",
+            "properties": {
+                "created_at": {
+                    "type": "string"
+                },
+                "deskripsi": {
+                    "type": "string"
+                },
+                "id": {
+                    "type": "integer"
+                },
+                "nama_penyakit": {
+                    "type": "string"
+                },
+                "updated_at": {
+                    "type": "string"
+                }
+            }
+        },
         "controllers.UpdateKebunRequest": {
             "type": "object",
             "properties": {
@@ -1820,6 +2330,9 @@ const docTemplate = `{
                     "type": "string"
                 }
             }
+        },
+        "utils.EmptyObj": {
+            "type": "object"
         },
         "utils.Pagination": {
             "type": "object",
