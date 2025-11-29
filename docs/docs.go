@@ -1858,6 +1858,330 @@ const docTemplate = `{
                 }
             }
         },
+        "/petani/fase-panen": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Mendapatkan semua fase panen dengan pagination",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fase Panen"
+                ],
+                "summary": "Get all fase panen",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Nomor halaman",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Jumlah data per halaman",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Menambahkan data fase panen baru",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fase Panen"
+                ],
+                "summary": "Create fase panen",
+                "parameters": [
+                    {
+                        "type": "string",
+                        "description": "Tanggal Panen Aktual (YYYY-MM-DD)",
+                        "name": "tanggal_panen_aktual",
+                        "in": "formData",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Jumlah Panen",
+                        "name": "jumlah_panen",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Jumlah Sampel",
+                        "name": "jumlah_sampel",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Berat Total (Kg)",
+                        "name": "berat_total",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Catatan",
+                        "name": "catatan",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Foto Panen",
+                        "name": "foto_panen",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID Tanaman",
+                        "name": "tanaman_id",
+                        "in": "formData",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/petani/fase-panen/tanaman/{tanaman_id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Mendapatkan daftar fase panen milik tanaman tertentu",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fase Panen"
+                ],
+                "summary": "Get fase panen by tanaman ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Tanaman",
+                        "name": "tanaman_id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Nomor halaman",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Jumlah data per halaman",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/petani/fase-panen/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Mendapatkan detail fase panen",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fase Panen"
+                ],
+                "summary": "Get fase panen by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Fase Panen",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Mengupdate data fase panen",
+                "consumes": [
+                    "multipart/form-data"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fase Panen"
+                ],
+                "summary": "Update fase panen",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Fase Panen",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "type": "string",
+                        "description": "YYYY-MM-DD",
+                        "name": "tanggal_panen_aktual",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Jumlah Panen",
+                        "name": "jumlah_panen",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Jumlah Sampel",
+                        "name": "jumlah_sampel",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "number",
+                        "description": "Berat Total (Kg)",
+                        "name": "berat_total",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "string",
+                        "description": "Catatan",
+                        "name": "catatan",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "file",
+                        "description": "Foto Panen",
+                        "name": "foto_panen",
+                        "in": "formData"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "ID Tanaman",
+                        "name": "tanaman_id",
+                        "in": "formData"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Menghapus fase panen berdasarkan ID",
+                "tags": [
+                    "Fase Panen"
+                ],
+                "summary": "Delete fase panen",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Fase Panen",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/register/pembeli": {
             "post": {
                 "description": "Register pembeli menggunakan credential lokal",

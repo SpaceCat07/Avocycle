@@ -1505,6 +1505,213 @@ paths:
       summary: Get fase bunga by tanaman ID
       tags:
       - Fase Bunga
+  /petani/fase-panen:
+    get:
+      consumes:
+      - application/json
+      description: Mendapatkan semua fase panen dengan pagination
+      parameters:
+      - description: Nomor halaman
+        in: query
+        name: page
+        type: integer
+      - description: Jumlah data per halaman
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get all fase panen
+      tags:
+      - Fase Panen
+    post:
+      consumes:
+      - multipart/form-data
+      description: Menambahkan data fase panen baru
+      parameters:
+      - description: Tanggal Panen Aktual (YYYY-MM-DD)
+        in: formData
+        name: tanggal_panen_aktual
+        required: true
+        type: string
+      - description: Jumlah Panen
+        in: formData
+        name: jumlah_panen
+        type: integer
+      - description: Jumlah Sampel
+        in: formData
+        name: jumlah_sampel
+        type: integer
+      - description: Berat Total (Kg)
+        in: formData
+        name: berat_total
+        type: number
+      - description: Catatan
+        in: formData
+        name: catatan
+        type: string
+      - description: Foto Panen
+        in: formData
+        name: foto_panen
+        type: file
+      - description: ID Tanaman
+        in: formData
+        name: tanaman_id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Create fase panen
+      tags:
+      - Fase Panen
+  /petani/fase-panen/{id}:
+    delete:
+      description: Menghapus fase panen berdasarkan ID
+      parameters:
+      - description: ID Fase Panen
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Delete fase panen
+      tags:
+      - Fase Panen
+    get:
+      consumes:
+      - application/json
+      description: Mendapatkan detail fase panen
+      parameters:
+      - description: ID Fase Panen
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get fase panen by ID
+      tags:
+      - Fase Panen
+    put:
+      consumes:
+      - multipart/form-data
+      description: Mengupdate data fase panen
+      parameters:
+      - description: ID Fase Panen
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: YYYY-MM-DD
+        in: formData
+        name: tanggal_panen_aktual
+        type: string
+      - description: Jumlah Panen
+        in: formData
+        name: jumlah_panen
+        type: integer
+      - description: Jumlah Sampel
+        in: formData
+        name: jumlah_sampel
+        type: integer
+      - description: Berat Total (Kg)
+        in: formData
+        name: berat_total
+        type: number
+      - description: Catatan
+        in: formData
+        name: catatan
+        type: string
+      - description: Foto Panen
+        in: formData
+        name: foto_panen
+        type: file
+      - description: ID Tanaman
+        in: formData
+        name: tanaman_id
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Update fase panen
+      tags:
+      - Fase Panen
+  /petani/fase-panen/tanaman/{tanaman_id}:
+    get:
+      consumes:
+      - application/json
+      description: Mendapatkan daftar fase panen milik tanaman tertentu
+      parameters:
+      - description: ID Tanaman
+        in: path
+        name: tanaman_id
+        required: true
+        type: integer
+      - description: Nomor halaman
+        in: query
+        name: page
+        type: integer
+      - description: Jumlah data per halaman
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get fase panen by tanaman ID
+      tags:
+      - Fase Panen
   /register/pembeli:
     post:
       consumes:
