@@ -14,6 +14,29 @@ import (
     "Avocycle/utils"
 )
 
+type CreateFaseBuahInput struct {
+    MingguKe      int    `json:"minggu_ke" example:"3"`
+    TanggalCatat  string `json:"tanggal_catat" example:"2025-11-29"`
+    TanggalCover  string `json:"tanggal_cover" example:"2025-11-30"`
+    JumlahCover   int    `json:"jumlah_cover" example:"15"`
+    WarnaLabel    string `json:"warna_label,omitempty" example:"Hijau"`
+    EstimasiPanen string `json:"estimasi_panen,omitempty" example:"2025-12-20"`
+    TanamanID     uint   `json:"tanaman_id" example:"5"`
+}
+
+// FaseBuah model example
+// @Description Data fase berbuah
+type FaseBuah struct {
+    ID             uint       `json:"id" example:"1"`
+    MingguKe       int        `json:"minggu_ke" example:"3"`
+    TanggalCatat   *time.Time `json:"tanggal_catat"`
+    TanggalCover   *time.Time `json:"tanggal_cover"`
+    JumlahCover    int        `json:"jumlah_cover" example:"10"`
+    WarnaLabel     string     `json:"warna_label,omitempty" example:"Hijau"`
+    EstimasiPanen  *time.Time `json:"estimasi_panen"`
+    TanamanID      uint       `json:"tanaman_id" example:"5"`
+}
+
 // Helper untuk validasi tanggal cover (YYYY-MM-DD). Boleh tanggal masa depan.
 func parseAndValidateTanggalCover(dateStr string) (time.Time, error) {
     parsed, err := time.Parse("2006-01-02", dateStr)
@@ -37,7 +60,16 @@ func parseAndValidateEstimasiPanen(dateStr string) (time.Time, error) {
     return parsed, nil
 }
 
-// GET /fase-berbuah (with pagination)
+// @Summary Get all fase berbuah
+// @Description Mendapatkan semua data fase berbuah dengan pagination
+// @Tags Fase Berbuah
+// @Security Bearer
+// @Produce json
+// @Param page query int false "Halaman" default(1)
+// @Param per_page query int false "Jumlah item per halaman" default(10)
+// @Success 200 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /petani/fase-berbuah [get]
 func GetAllFaseBuah(c *gin.Context) {
 	page, perPage := utils.GetPagination(c)
 	offset := utils.GetOffset(page, perPage)
@@ -82,6 +114,15 @@ func GetAllFaseBuah(c *gin.Context) {
 }
 
 // GET /fase-berbuah/:id
+// @Summary Get fase berbuah by ID
+// @Description Mendapatkan detail fase berbuah berdasarkan ID
+// @Tags Fase Berbuah
+// @Security Bearer
+// @Produce json
+// @Param id path int true "ID Fase Buah"
+// @Success 200 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /petani/fase-berbuah/{id} [get]
 func GetFaseBuahByID(c *gin.Context) {
 	id := c.Param("id")
 
@@ -105,6 +146,17 @@ func GetFaseBuahByID(c *gin.Context) {
 }
 
 // POST /fase-berbuah
+// @Summary Create fase berbuah
+// @Description Menambahkan data fase berbuah baru untuk tanaman
+// @Tags Fase Berbuah
+// @Accept json
+// @Produce json
+// @Security Bearer
+// @Param request body CreateFaseBuahInput true "Fase Buah Data"
+// @Success 201 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /petani/fase-berbuah [post]
 func CreateFaseBuah(c *gin.Context) {
 	var input struct {
 		MingguKe      int    `json:"minggu_ke" binding:"required"`
@@ -189,6 +241,18 @@ func CreateFaseBuah(c *gin.Context) {
 }
 
 // PUT /fase-berbuah/:id
+// @Summary Update fase berbuah
+// @Description Mengupdate data fase berbuah berdasarkan ID
+// @Tags Fase Berbuah
+// @Security Bearer
+// @Accept json
+// @Produce json
+// @Param id path int true "ID Fase Buah"
+// @Param request body CreateFaseBuahInput true "Fase Buah Data"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /petani/fase-berbuah/{id} [put]
 func UpdateFaseBuah(c *gin.Context) {
 	id := c.Param("id")
 
@@ -226,37 +290,37 @@ func UpdateFaseBuah(c *gin.Context) {
 	// Apply updates with validation
 	if input.MingguKe != nil {
 		if !isValidMingguKe(*input.MingguKe) {
-			utils.ErrorResponse(c, http.StatusBadRequest, "minggu_ke harus positif", *input.MingguKe)
+			utils.ErrorResponse(c, http.StatusBadRequest, "minggu_ke harus positif", nil)
 			return
 		}
 		faseBuah.MingguKe = *input.MingguKe
 	}
 
 	if input.TanggalCatat != nil {
-		parsedTanggal, err := parseAndValidateTanggalCatat(*input.TanggalCatat)
+		parsed, err := parseAndValidateTanggalCatat(*input.TanggalCatat)
 		if err != nil {
 			utils.ErrorResponse(c, http.StatusBadRequest, "tanggal_catat tidak valid", err.Error())
 			return
 		}
-		faseBuah.TanggalCatat = &parsedTanggal
+		faseBuah.TanggalCatat = &parsed
 	}
 
 	if input.TanggalCover != nil {
-		parsedTanggal, err := parseAndValidateTanggalCover(*input.TanggalCover)
+		parsed, err := parseAndValidateTanggalCover(*input.TanggalCover)
 		if err != nil {
 			utils.ErrorResponse(c, http.StatusBadRequest, "tanggal_cover tidak valid", err.Error())
 			return
 		}
-		faseBuah.TanggalCover = &parsedTanggal
+		faseBuah.TanggalCover = &parsed
 	}
 
 	if input.EstimasiPanen != nil {
-		parsedTanggal, err := parseAndValidateEstimasiPanen(*input.EstimasiPanen)
+		parsed, err := parseAndValidateEstimasiPanen(*input.EstimasiPanen)
 		if err != nil {
 			utils.ErrorResponse(c, http.StatusBadRequest, "estimasi_panen tidak valid", err.Error())
 			return
 		}
-		faseBuah.EstimasiPanen = &parsedTanggal
+		faseBuah.EstimasiPanen = &parsed
 	}
 
 	if input.JumlahCover != nil {
@@ -273,14 +337,37 @@ func UpdateFaseBuah(c *gin.Context) {
 
 	if input.TanamanID != nil {
 		if msg := ensureTanamanExists(db, *input.TanamanID); msg != nil {
-			utils.ErrorResponse(c, http.StatusBadRequest, *msg, *input.TanamanID)
+			utils.ErrorResponse(c, http.StatusBadRequest, *msg, input.TanamanID)
 			return
 		}
+
+		// Update nilai FK di struct
 		faseBuah.TanamanID = *input.TanamanID
+
+		// --- BAGIAN PENTING (FIX) ---
+		// Kita harus mengosongkan struct relasi Tanaman yang sudah di-preload sebelumnya.
+		// Jika tidak dikosongkan, GORM akan menganggap relasinya masih ke Tanaman lama (ID 10)
+		// dan saat db.Save() dipanggil, dia akan me-revert tanaman_id kembali ke 10.
+		faseBuah.Tanaman = models.Tanaman{} 
+		// ----------------------------
 	}
 
+	// Save to DB (Ini akan menyimpan semua perubahan termasuk tanaman_id baru)
 	if err := db.Save(&faseBuah).Error; err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal update fase berbuah", err.Error())
+		return
+	}
+
+	// 6. Muat Ulang Data (Refresh)
+	// Kita memuat ulang agar response API menampilkan data Tanaman yang BARU (ID 7),
+	// bukan kosong (karena kita set models.Tanaman{} tadi) atau data lama.
+	if err := db.
+		Model(&faseBuah).
+		Select("fase_buahs.*"). // Pastikan select table utama
+		Preload("Tanaman").     // Load relasi Tanaman yang baru
+		//Preload("Tanaman.Kebun"). // Opsional: Jika ingin detail kebun juga
+		First(&faseBuah, faseBuah.ID).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal muat ulang data", err.Error())
 		return
 	}
 
@@ -288,6 +375,15 @@ func UpdateFaseBuah(c *gin.Context) {
 }
 
 // DELETE /fase-berbuah/:id
+// @Summary Delete fase berbuah
+// @Description Menghapus fase berbuah berdasarkan ID
+// @Tags Fase Berbuah
+// @Security Bearer
+// @Produce json
+// @Param id path int true "ID Fase Buah"
+// @Success 200 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /petani/fase-berbuah/{id} [delete]
 func DeleteFaseBuah(c *gin.Context) {
 	id := c.Param("id")
 
@@ -316,6 +412,17 @@ func DeleteFaseBuah(c *gin.Context) {
 }
 
 // GET /fase-berbuah/tanaman/:tanaman_id (paginated)
+// @Summary Get fase berbuah by tanaman ID
+// @Description Mendapatkan data fase berbuah berdasarkan tanaman ID dengan pagination
+// @Tags Fase Berbuah
+// @Security Bearer
+// @Produce json
+// @Param tanaman_id path int true "ID Tanaman"
+// @Param page query int false "Halaman" default(1)
+// @Param per_page query int false "Jumlah item per halaman" default(10)
+// @Success 200 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /petani/fase-berbuah/tanaman/{tanaman_id} [get]
 func GetFaseBuahByTanaman(c *gin.Context) {
 	tanamanIDStr := c.Param("tanaman_id")
 	tanamanID, err := strconv.ParseUint(tanamanIDStr, 10, 32)

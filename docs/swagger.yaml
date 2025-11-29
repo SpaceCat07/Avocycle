@@ -28,6 +28,30 @@ definitions:
         example: Aplikasikan fungisida berbahan dasar tembaga.
         type: string
     type: object
+  controllers.CreateFaseBuahInput:
+    properties:
+      estimasi_panen:
+        example: "2025-12-20"
+        type: string
+      jumlah_cover:
+        example: 15
+        type: integer
+      minggu_ke:
+        example: 3
+        type: integer
+      tanaman_id:
+        example: 5
+        type: integer
+      tanggal_catat:
+        example: "2025-11-29"
+        type: string
+      tanggal_cover:
+        example: "2025-11-30"
+        type: string
+      warna_label:
+        example: Hijau
+        type: string
+    type: object
   controllers.ErrorResponseWrapper:
     properties:
       data: {}
@@ -133,20 +157,6 @@ definitions:
       updated_at:
         type: string
     type: object
-  controllers.SwaggerPenyakitTanaman:
-    description: Model untuk data penyakit tanaman
-    properties:
-      created_at:
-        type: string
-      deskripsi:
-        type: string
-      id:
-        type: integer
-      nama_penyakit:
-        type: string
-      updated_at:
-        type: string
-    type: object
   controllers.UpdateKebunRequest:
     properties:
       mdpl:
@@ -223,8 +233,6 @@ definitions:
         type: string
       updated_at:
         type: string
-    type: object
-  utils.EmptyObj:
     type: object
   utils.Pagination:
     properties:
@@ -379,165 +387,6 @@ paths:
       summary: Get log penyakit tanaman by Tanaman ID
       tags:
       - LogPenyakitTanaman
-  /api/penyakit:
-    get:
-      consumes:
-      - application/json
-      description: Mengambil semua data penyakit tanaman dengan pagination
-      parameters:
-      - description: Nomor halaman
-        in: query
-        name: page
-        type: integer
-      - description: Jumlah data per halaman
-        in: query
-        name: per_page
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Data kosong
-          schema:
-            allOf:
-            - $ref: '#/definitions/utils.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/controllers.SwaggerLogPenyakitTanaman'
-                  type: array
-                meta:
-                  $ref: '#/definitions/utils.Pagination'
-              type: object
-        "400":
-          description: Page out of range
-          schema:
-            $ref: '#/definitions/utils.Response'
-        "500":
-          description: Gagal koneksi DB atau query
-          schema:
-            $ref: '#/definitions/utils.Response'
-      summary: Mendapatkan daftar penyakit tanaman
-      tags:
-      - Penyakit Tanaman
-  /api/penyakit/{id}:
-    delete:
-      consumes:
-      - application/json
-      description: Menghapus data penyakit jika tidak sedang digunakan
-      parameters:
-      - description: ID Penyakit
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Berhasil hapus
-          schema:
-            allOf:
-            - $ref: '#/definitions/utils.Response'
-            - properties:
-                data:
-                  $ref: '#/definitions/utils.EmptyObj'
-              type: object
-        "404":
-          description: Tidak ditemukan
-          schema:
-            $ref: '#/definitions/utils.Response'
-        "409":
-          description: Masih digunakan di log penyakit tanaman
-          schema:
-            $ref: '#/definitions/utils.Response'
-        "500":
-          description: Gagal hapus data
-          schema:
-            $ref: '#/definitions/utils.Response'
-      summary: Hapus penyakit tanaman
-      tags:
-      - Penyakit Tanaman
-    get:
-      consumes:
-      - application/json
-      description: Mengambil detail penyakit berdasarkan ID
-      parameters:
-      - description: ID Penyakit
-        in: path
-        name: id
-        required: true
-        type: integer
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Detail penyakit tanaman
-          schema:
-            allOf:
-            - $ref: '#/definitions/utils.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/controllers.SwaggerPenyakitTanaman'
-                  type: array
-              type: object
-        "404":
-          description: Penyakit tidak ditemukan
-          schema:
-            $ref: '#/definitions/utils.Response'
-        "500":
-          description: Gagal ambil data
-          schema:
-            $ref: '#/definitions/utils.Response'
-      summary: Mendapatkan detail penyakit tanaman
-      tags:
-      - Penyakit Tanaman
-    put:
-      consumes:
-      - application/json
-      description: Perbarui data deskripsi penyakit tanaman
-      parameters:
-      - description: ID Penyakit
-        in: path
-        name: id
-        required: true
-        type: integer
-      - description: Data yang diupdate
-        in: body
-        name: request
-        required: true
-        schema:
-          type: object
-      produces:
-      - application/json
-      responses:
-        "200":
-          description: Berhasil update penyakit
-          schema:
-            allOf:
-            - $ref: '#/definitions/utils.Response'
-            - properties:
-                data:
-                  items:
-                    $ref: '#/definitions/controllers.SwaggerPenyakitTanaman'
-                  type: array
-              type: object
-        "400":
-          description: Input tidak valid
-          schema:
-            $ref: '#/definitions/utils.Response'
-        "404":
-          description: Penyakit tidak ditemukan
-          schema:
-            $ref: '#/definitions/utils.Response'
-        "500":
-          description: Gagal update
-          schema:
-            $ref: '#/definitions/utils.Response'
-      summary: Update penyakit tanaman
-      tags:
-      - Penyakit Tanaman
   /auth/{provider}/callback/pembeli:
     get:
       description: "Handle Google OAuth callback and return JWT token for Pembeli.\n\nSetelah
@@ -1263,6 +1112,187 @@ paths:
       summary: Get buah by kebun ID with pagination
       tags:
       - Buah
+  /petani/fase-berbuah:
+    get:
+      description: Mendapatkan semua data fase berbuah dengan pagination
+      parameters:
+      - default: 1
+        description: Halaman
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Jumlah item per halaman
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get all fase berbuah
+      tags:
+      - Fase Berbuah
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan data fase berbuah baru untuk tanaman
+      parameters:
+      - description: Fase Buah Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateFaseBuahInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Create fase berbuah
+      tags:
+      - Fase Berbuah
+  /petani/fase-berbuah/{id}:
+    delete:
+      description: Menghapus fase berbuah berdasarkan ID
+      parameters:
+      - description: ID Fase Buah
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Delete fase berbuah
+      tags:
+      - Fase Berbuah
+    get:
+      description: Mendapatkan detail fase berbuah berdasarkan ID
+      parameters:
+      - description: ID Fase Buah
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get fase berbuah by ID
+      tags:
+      - Fase Berbuah
+    put:
+      consumes:
+      - application/json
+      description: Mengupdate data fase berbuah berdasarkan ID
+      parameters:
+      - description: ID Fase Buah
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Fase Buah Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateFaseBuahInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Update fase berbuah
+      tags:
+      - Fase Berbuah
+  /petani/fase-berbuah/tanaman/{tanaman_id}:
+    get:
+      description: Mendapatkan data fase berbuah berdasarkan tanaman ID dengan pagination
+      parameters:
+      - description: ID Tanaman
+        in: path
+        name: tanaman_id
+        required: true
+        type: integer
+      - default: 1
+        description: Halaman
+        in: query
+        name: page
+        type: integer
+      - default: 10
+        description: Jumlah item per halaman
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get fase berbuah by tanaman ID
+      tags:
+      - Fase Berbuah
   /register/pembeli:
     post:
       consumes:
