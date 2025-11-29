@@ -1587,6 +1587,274 @@
                 }
             }
         },
+        "/petani/fase-bunga": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Mendapatkan daftar semua fase bunga (dengan pagination)",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fase Bunga"
+                ],
+                "summary": "Get all fase bunga",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "Nomor halaman",
+                        "name": "page",
+                        "in": "query"
+                    },
+                    {
+                        "type": "integer",
+                        "description": "Jumlah data per halaman",
+                        "name": "per_page",
+                        "in": "query"
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            },
+            "post": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Menambahkan fase bunga baru untuk tanaman",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fase Bunga"
+                ],
+                "summary": "Create fase bunga",
+                "parameters": [
+                    {
+                        "description": "Fase Bunga Data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.CreateFaseBungaInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "201": {
+                        "description": "Created",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "500": {
+                        "description": "Internal Server Error",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/petani/fase-bunga/tanaman/{tanaman_id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Mendapatkan semua fase bunga milik tanaman tertentu",
+                "tags": [
+                    "Fase Bunga"
+                ],
+                "summary": "Get fase bunga by tanaman ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Tanaman",
+                        "name": "tanaman_id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
+        "/petani/fase-bunga/{id}": {
+            "get": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Mendapatkan detail fase bunga berdasarkan ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fase Bunga"
+                ],
+                "summary": "Get fase bunga by ID",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Fase Bunga",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            },
+            "put": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Mengupdate data fase bunga berdasarkan ID",
+                "consumes": [
+                    "application/json"
+                ],
+                "produces": [
+                    "application/json"
+                ],
+                "tags": [
+                    "Fase Bunga"
+                ],
+                "summary": "Update fase bunga",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Fase Bunga",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    },
+                    {
+                        "description": "Fase Bunga Data",
+                        "name": "request",
+                        "in": "body",
+                        "required": true,
+                        "schema": {
+                            "$ref": "#/definitions/controllers.UpdateFaseBungaInput"
+                        }
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "400": {
+                        "description": "Bad Request",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            },
+            "delete": {
+                "security": [
+                    {
+                        "Bearer": []
+                    }
+                ],
+                "description": "Menghapus fase bunga berdasarkan ID",
+                "tags": [
+                    "Fase Bunga"
+                ],
+                "summary": "Delete fase bunga",
+                "parameters": [
+                    {
+                        "type": "integer",
+                        "description": "ID Fase Bunga",
+                        "name": "id",
+                        "in": "path",
+                        "required": true
+                    }
+                ],
+                "responses": {
+                    "200": {
+                        "description": "OK",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    },
+                    "404": {
+                        "description": "Not Found",
+                        "schema": {
+                            "$ref": "#/definitions/utils.Response"
+                        }
+                    }
+                }
+            }
+        },
         "/register/pembeli": {
             "post": {
                 "description": "Register pembeli menggunakan credential lokal",
@@ -2100,6 +2368,36 @@
                 }
             }
         },
+        "controllers.CreateFaseBungaInput": {
+            "type": "object",
+            "properties": {
+                "bunga_pecah": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "jumlah_bunga": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "minggu_ke": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "pentil_muncul": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "tanaman_id": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "tanggal_catat": {
+                    "description": "format ISO-8601",
+                    "type": "string",
+                    "example": "2025-12-20"
+                }
+            }
+        },
         "controllers.ErrorResponseWrapper": {
             "type": "object",
             "properties": {
@@ -2245,6 +2543,35 @@
                 },
                 "updated_at": {
                     "type": "string"
+                }
+            }
+        },
+        "controllers.UpdateFaseBungaInput": {
+            "type": "object",
+            "properties": {
+                "bunga_pecah": {
+                    "type": "integer",
+                    "example": 2
+                },
+                "jumlah_bunga": {
+                    "type": "integer",
+                    "example": 10
+                },
+                "minggu_ke": {
+                    "type": "integer",
+                    "example": 3
+                },
+                "pentil_muncul": {
+                    "type": "integer",
+                    "example": 1
+                },
+                "tanaman_id": {
+                    "type": "integer",
+                    "example": 5
+                },
+                "tanggal_catat": {
+                    "type": "string",
+                    "example": "2025-12-20"
                 }
             }
         },

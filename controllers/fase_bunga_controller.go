@@ -14,6 +14,24 @@ import (
 	"Avocycle/utils"
 )
 
+type CreateFaseBungaInput struct {
+    MingguKe      int    `json:"minggu_ke" example:"3"`
+    TanggalCatat  string `json:"tanggal_catat" example:"2025-12-20"` // format ISO-8601
+    JumlahBunga   int    `json:"jumlah_bunga" example:"10"`
+    BungaPecah    int    `json:"bunga_pecah" example:"2"`
+    PentilMuncul  int    `json:"pentil_muncul" example:"1"`
+    TanamanID     uint   `json:"tanaman_id" example:"5"`
+}
+
+type UpdateFaseBungaInput struct {
+    MingguKe      *int    `json:"minggu_ke" example:"3"`
+    TanggalCatat  *string `json:"tanggal_catat" example:"2025-12-20"`
+    JumlahBunga   *int    `json:"jumlah_bunga" example:"10"`
+    BungaPecah    *int    `json:"bunga_pecah" example:"2"`
+    PentilMuncul  *int    `json:"pentil_muncul" example:"1"`
+    TanamanID     *uint   `json:"tanaman_id" example:"5"`
+}
+
 // Helper function to validate MingguKe (must be positive integer)
 func isValidMingguKe(mingguKe int) bool {
 	return mingguKe > 0
@@ -49,7 +67,17 @@ func ensureTanamanExists(db *gorm.DB, tanamanID uint) *string {
 	return nil
 }
 
-// GET /fase-bunga (with pagination)
+// @Summary Get all fase bunga
+// @Description Mendapatkan daftar semua fase bunga (dengan pagination)
+// @Tags Fase Bunga
+// @Security Bearer
+// @Accept json
+// @Produce json
+// @Param page query int false "Nomor halaman"
+// @Param per_page query int false "Jumlah data per halaman"
+// @Success 200 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /petani/fase-bunga [get]
 func GetAllFaseBunga(c *gin.Context) {
 	page, perPage := utils.GetPagination(c)
 	offset := utils.GetOffset(page, perPage)
@@ -93,7 +121,16 @@ func GetAllFaseBunga(c *gin.Context) {
 	utils.SuccessResponseWithMeta(c, http.StatusOK, "Data fase bunga berhasil diambil", faseBungaList, pagination)
 }
 
-// GET /fase-bunga/:id
+// @Summary Get fase bunga by ID
+// @Description Mendapatkan detail fase bunga berdasarkan ID
+// @Tags Fase Bunga
+// @Security Bearer
+// @Accept json
+// @Produce json
+// @Param id path int true "ID Fase Bunga"
+// @Success 200 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /petani/fase-bunga/{id} [get]
 func GetFaseBungaByID(c *gin.Context) {
 	id := c.Param("id")
 
@@ -116,7 +153,17 @@ func GetFaseBungaByID(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "Detail fase bunga", faseBunga)
 }
 
-// POST /fase-bunga
+// @Summary Create fase bunga
+// @Description Menambahkan fase bunga baru untuk tanaman
+// @Tags Fase Bunga
+// @Security Bearer
+// @Accept json
+// @Produce json
+// @Param request body controllers.CreateFaseBungaInput true "Fase Bunga Data"
+// @Success 201 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 500 {object} utils.Response
+// @Router /petani/fase-bunga [post]
 func CreateFaseBunga(c *gin.Context) {
 	var input struct {
 		MingguKe     int    `json:"minggu_ke" binding:"required"`
@@ -184,7 +231,18 @@ func CreateFaseBunga(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusCreated, "Fase bunga berhasil dibuat", faseBunga)
 }
 
-// PUT /fase-bunga/:id
+// @Summary Update fase bunga
+// @Description Mengupdate data fase bunga berdasarkan ID
+// @Tags Fase Bunga
+// @Security Bearer
+// @Accept json
+// @Produce json
+// @Param id path int true "ID Fase Bunga"
+// @Param request body controllers.UpdateFaseBungaInput true "Fase Bunga Data"
+// @Success 200 {object} utils.Response
+// @Failure 400 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /petani/fase-bunga/{id} [put]
 func UpdateFaseBunga(c *gin.Context) {
 	id := c.Param("id")
 
@@ -194,6 +252,7 @@ func UpdateFaseBunga(c *gin.Context) {
 		return
 	}
 
+	// 1. Ambil data eksisting beserta relasinya
 	var faseBunga models.FaseBunga
 	if err := db.Preload("Tanaman").First(&faseBunga, id).Error; err != nil {
 		if err == gorm.ErrRecordNotFound {
@@ -205,12 +264,12 @@ func UpdateFaseBunga(c *gin.Context) {
 	}
 
 	var input struct {
-		MingguKe     *int    `json:"minggu_ke"`
-		TanggalCatat *string `json:"tanggal_catat"` // YYYY-MM-DD
-		JumlahBunga  *int    `json:"jumlah_bunga"`
-		BungaPecah   *int    `json:"bunga_pecah"`
-		PentilMuncul *int    `json:"pentil_muncul"`
-		TanamanID    *uint   `json:"tanaman_id"`
+		MingguKe      *int    `json:"minggu_ke"`
+		TanggalCatat  *string `json:"tanggal_catat"` // YYYY-MM-DD
+		JumlahBunga   *int    `json:"jumlah_bunga"`
+		BungaPecah    *int    `json:"bunga_pecah"`
+		PentilMuncul  *int    `json:"pentil_muncul"`
+		TanamanID     *uint   `json:"tanaman_id"`
 	}
 
 	if err := c.ShouldBindJSON(&input); err != nil {
@@ -220,6 +279,7 @@ func UpdateFaseBunga(c *gin.Context) {
 
 	// Apply updates with validation
 	if input.MingguKe != nil {
+		// Asumsi isValidMingguKe, models, dan utils sudah didefinisikan
 		if !isValidMingguKe(*input.MingguKe) {
 			utils.ErrorResponse(c, http.StatusBadRequest, "minggu_ke harus positif", *input.MingguKe)
 			return
@@ -228,6 +288,7 @@ func UpdateFaseBunga(c *gin.Context) {
 	}
 
 	if input.TanggalCatat != nil {
+		// Asumsi parseAndValidateTanggalCatat sudah didefinisikan
 		parsedTanggal, err := parseAndValidateTanggalCatat(*input.TanggalCatat)
 		if err != nil {
 			utils.ErrorResponse(c, http.StatusBadRequest, "tanggal_catat tidak valid", err.Error())
@@ -260,23 +321,51 @@ func UpdateFaseBunga(c *gin.Context) {
 		faseBunga.PentilMuncul = *input.PentilMuncul
 	}
 
+	// 2. Logika Update Tanaman ID (FIX UTAMA)
 	if input.TanamanID != nil {
+		// Pastikan tanaman baru valid di DB
 		if msg := ensureTanamanExists(db, *input.TanamanID); msg != nil {
 			utils.ErrorResponse(c, http.StatusBadRequest, *msg, *input.TanamanID)
 			return
 		}
+		
+		// Update Foreign Key di struct
 		faseBunga.TanamanID = *input.TanamanID
+
+		// PENTING: Kosongkan struct relasi Tanaman yang di-preload.
+		// Ini mencegah GORM mengembalikan 'tanaman_id' ke nilai lama saat db.Save().
+		faseBunga.Tanaman = models.Tanaman{}
 	}
 
+	// 3. Simpan Perubahan
 	if err := db.Save(&faseBunga).Error; err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal update fase bunga", err.Error())
+		return
+	}
+
+	// 4. Muat Ulang Data (Re-fetch)
+	// Muat ulang dengan Preload agar struct Tanaman terisi dengan data TanamanID yang BARU
+	if err := db.
+		Model(&faseBunga).
+		Select("fase_bungas.*").
+		Preload("Tanaman").
+		Preload("Tanaman.Kebun"). // Opsional: jika relasi ke kebun juga dibutuhkan
+		First(&faseBunga, faseBunga.ID).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal muat ulang data", err.Error())
 		return
 	}
 
 	utils.SuccessResponse(c, http.StatusOK, "Fase bunga berhasil diperbarui", faseBunga)
 }
 
-// DELETE /fase-bunga/:id
+// @Summary Delete fase bunga
+// @Description Menghapus fase bunga berdasarkan ID
+// @Tags Fase Bunga
+// @Security Bearer
+// @Param id path int true "ID Fase Bunga"
+// @Success 200 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /petani/fase-bunga/{id} [delete]
 func DeleteFaseBunga(c *gin.Context) {
 	id := c.Param("id")
 
@@ -304,7 +393,14 @@ func DeleteFaseBunga(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "Fase bunga berhasil dihapus", utils.EmptyObj{})
 }
 
-// GET /fase-bunga/tanaman/:tanaman_id (paginated)
+// @Summary Get fase bunga by tanaman ID
+// @Description Mendapatkan semua fase bunga milik tanaman tertentu
+// @Tags Fase Bunga
+// @Security Bearer
+// @Param tanaman_id path int true "ID Tanaman"
+// @Success 200 {object} utils.Response
+// @Failure 404 {object} utils.Response
+// @Router /petani/fase-bunga/tanaman/{tanaman_id} [get]
 func GetFaseBungaByTanaman(c *gin.Context) {
 	tanamanIDStr := c.Param("tanaman_id")
 	tanamanID, err := strconv.ParseUint(tanamanIDStr, 10, 32)

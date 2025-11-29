@@ -52,6 +52,28 @@ definitions:
         example: Hijau
         type: string
     type: object
+  controllers.CreateFaseBungaInput:
+    properties:
+      bunga_pecah:
+        example: 2
+        type: integer
+      jumlah_bunga:
+        example: 10
+        type: integer
+      minggu_ke:
+        example: 3
+        type: integer
+      pentil_muncul:
+        example: 1
+        type: integer
+      tanaman_id:
+        example: 5
+        type: integer
+      tanggal_catat:
+        description: format ISO-8601
+        example: "2025-12-20"
+        type: string
+    type: object
   controllers.ErrorResponseWrapper:
     properties:
       data: {}
@@ -155,6 +177,27 @@ definitions:
       tanaman_id:
         type: integer
       updated_at:
+        type: string
+    type: object
+  controllers.UpdateFaseBungaInput:
+    properties:
+      bunga_pecah:
+        example: 2
+        type: integer
+      jumlah_bunga:
+        example: 10
+        type: integer
+      minggu_ke:
+        example: 3
+        type: integer
+      pentil_muncul:
+        example: 1
+        type: integer
+      tanaman_id:
+        example: 5
+        type: integer
+      tanggal_catat:
+        example: "2025-12-20"
         type: string
     type: object
   controllers.UpdateKebunRequest:
@@ -1293,6 +1336,175 @@ paths:
       summary: Get fase berbuah by tanaman ID
       tags:
       - Fase Berbuah
+  /petani/fase-bunga:
+    get:
+      consumes:
+      - application/json
+      description: Mendapatkan daftar semua fase bunga (dengan pagination)
+      parameters:
+      - description: Nomor halaman
+        in: query
+        name: page
+        type: integer
+      - description: Jumlah data per halaman
+        in: query
+        name: per_page
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get all fase bunga
+      tags:
+      - Fase Bunga
+    post:
+      consumes:
+      - application/json
+      description: Menambahkan fase bunga baru untuk tanaman
+      parameters:
+      - description: Fase Bunga Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.CreateFaseBungaInput'
+      produces:
+      - application/json
+      responses:
+        "201":
+          description: Created
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "500":
+          description: Internal Server Error
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Create fase bunga
+      tags:
+      - Fase Bunga
+  /petani/fase-bunga/{id}:
+    delete:
+      description: Menghapus fase bunga berdasarkan ID
+      parameters:
+      - description: ID Fase Bunga
+        in: path
+        name: id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Delete fase bunga
+      tags:
+      - Fase Bunga
+    get:
+      consumes:
+      - application/json
+      description: Mendapatkan detail fase bunga berdasarkan ID
+      parameters:
+      - description: ID Fase Bunga
+        in: path
+        name: id
+        required: true
+        type: integer
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get fase bunga by ID
+      tags:
+      - Fase Bunga
+    put:
+      consumes:
+      - application/json
+      description: Mengupdate data fase bunga berdasarkan ID
+      parameters:
+      - description: ID Fase Bunga
+        in: path
+        name: id
+        required: true
+        type: integer
+      - description: Fase Bunga Data
+        in: body
+        name: request
+        required: true
+        schema:
+          $ref: '#/definitions/controllers.UpdateFaseBungaInput'
+      produces:
+      - application/json
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "400":
+          description: Bad Request
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Update fase bunga
+      tags:
+      - Fase Bunga
+  /petani/fase-bunga/tanaman/{tanaman_id}:
+    get:
+      description: Mendapatkan semua fase bunga milik tanaman tertentu
+      parameters:
+      - description: ID Tanaman
+        in: path
+        name: tanaman_id
+        required: true
+        type: integer
+      responses:
+        "200":
+          description: OK
+          schema:
+            $ref: '#/definitions/utils.Response'
+        "404":
+          description: Not Found
+          schema:
+            $ref: '#/definitions/utils.Response'
+      security:
+      - Bearer: []
+      summary: Get fase bunga by tanaman ID
+      tags:
+      - Fase Bunga
   /register/pembeli:
     post:
       consumes:
