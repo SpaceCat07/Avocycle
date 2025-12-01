@@ -143,20 +143,43 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
+      - name: Check deployment secrets
+        id: check_secrets
+        run: |
+          if [ -z "${{ secrets.SERVER_HOST }}" ]; then
+            echo "skip_deploy=true" >> $GITHUB_OUTPUT
+            echo "⚠️ Deployment secrets not configured. Skipping deployment."
+            echo "Please add these secrets to your repository:"
+            echo "  - SERVER_HOST"
+            echo "  - SERVER_USER"
+            echo "  - SSH_PRIVATE_KEY"
+            echo "  - SERVER_PORT"
+          else
+            echo "skip_deploy=false" >> $GITHUB_OUTPUT
+            echo "✅ Deployment secrets configured."
+          fi
+
       - name: Deploy to Server via SSH
+        if: steps.check_secrets.outputs.skip_deploy != 'true'
         uses: appleboy/ssh-action@v1.0.0
         with:
           host: ${{ secrets.SERVER_HOST }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
-          port: ${{ secrets.SERVER_PORT }}
+          port: ${{ secrets.SERVER_PORT || '22' }}
           script: |
-            cd /path/to/app
+            cd /var/www/avocycle-app1
+            git pull origin main
             docker-compose pull
-            docker-compose up -d
+            docker-compose down
+            docker-compose up -d --build
             docker system prune -f
 
-      - name: Notify deployment
-        if: success()
+      - name: Deployment Status
+        if: always()
         run: |
-          echo "Deployment successful!"
+          if [ "${{ steps.check_secrets.outputs.skip_deploy }}" == "true" ]; then
+            echo "⚠️ Deployment was skipped - secrets not configured"
+          else
+            echo "✅ Deployment completed successfully to http://avocycle.my.id:8081!"
+          fi

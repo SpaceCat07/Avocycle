@@ -68,13 +68,18 @@ func InitRoutes() *gin.Engine {
 		petaniRoutes.Use(middleware.RoleMiddleware("Petani"))
 		{
 			// CRUD Buah
-			petaniRoutes.POST("/buah", controllers.CreateBuah)
-			petaniRoutes.GET("/buah", controllers.GetAllBuah)
-			petaniRoutes.GET("/buah/:id", controllers.GetBuahByID)
-			petaniRoutes.GET("/buah/by-tanaman/:id_kebun", controllers.GetBuahByKebun)
-			petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
-			petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
+      petaniRoutes.POST("/buah", controllers.CreateBuah)
+      petaniRoutes.GET("/buah", controllers.GetAllBuah)
+      petaniRoutes.GET("/buah/:id", controllers.GetBuahByID)
+      petaniRoutes.GET("/buah/by-tanaman/:id_kebun", controllers.GetBuahByKebun)
+      petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
+      petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
 
+			// statistics
+			petaniRoutes.GET("/count-all-tanaman", controllers.CountAllPohon)
+			petaniRoutes.GET("/count-tanaman-sakit", controllers.CountTanamanDiseased)
+			petaniRoutes.GET("/count-tanaman-siap-panen", controllers.CountSiapPanen)
+      
 			// CRUD Fase Bunga
 			petaniRoutes.POST("/fase-bunga", controllers.CreateFaseBunga)
 			petaniRoutes.GET("/fase-bunga", controllers.GetAllFaseBunga)
