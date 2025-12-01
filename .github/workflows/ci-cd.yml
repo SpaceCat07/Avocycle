@@ -44,7 +44,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: '1.24.4'
 
       - name: Cache Go modules
         uses: actions/cache@v4
@@ -52,9 +52,9 @@ jobs:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-1.24.4-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-
+            ${{ runner.os }}-go-1.24.4-
 
       - name: Download dependencies
         run: go mod download
@@ -89,7 +89,7 @@ jobs:
       - name: Set up Go
         uses: actions/setup-go@v5
         with:
-          go-version: ${{ env.GO_VERSION }}
+          go-version: '1.24.4'
 
       - name: Cache Go modules
         uses: actions/cache@v4
@@ -97,9 +97,9 @@ jobs:
           path: |
             ~/.cache/go-build
             ~/go/pkg/mod
-          key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+          key: ${{ runner.os }}-go-1.24.4-${{ hashFiles('**/go.sum') }}
           restore-keys: |
-            ${{ runner.os }}-go-
+            ${{ runner.os }}-go-1.24.4-
 
       - name: Build application
         run: go build -v -o avocycle ./main.go
@@ -151,12 +151,14 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            cd /path/to/app
+            cd /var/www/avocycle
+            git pull origin main
             docker-compose pull
-            docker-compose up -d
+            docker-compose down
+            docker-compose up -d --build
             docker system prune -f
 
       - name: Notify deployment
         if: success()
         run: |
-          echo "Deployment successful!"
+          echo "Deployment successful to http://avocycle.my.id!"
