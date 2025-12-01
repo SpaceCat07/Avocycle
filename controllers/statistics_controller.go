@@ -20,7 +20,7 @@ func CountAllPohon(c *gin.Context) {
 	}
 
 	var totalTree int64
-	if err := db.Model(&models.Tanaman{}).Count(&totalTree).Error ;err != nil {
+	if err := db.Model(&models.Tanaman{}).Count(&totalTree).Error; err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count tanaman", err.Error())
 		return
 	}
@@ -42,16 +42,19 @@ func CountTanamanDiseased(c *gin.Context) {
 	}
 
 	var tanamanSakit int64
+
+	// Gunakan DISTINCT untuk count tanaman_id unik
 	if err := db.Model(&models.LogPenyakitTanaman{}).
-			Where("kondisi IN ?", []string{"Parah", "Sedang", "Ringan"}).
-			Where("created_at = (?)",
-				db.Model(&models.LogPenyakitTanaman{}).
-					Select("MAX(created_at)").
-					Where("tanaman_id = log_penyakit_tanaman.tanaman_id"),
-			).
-			Count(&tanamanSakit).
-			Error;
-		err != nil {
+		Select("DISTINCT tanaman_id").
+		Where("kondisi IN ?", []string{"Parah", "Sedang", "Ringan"}).
+		Where("created_at IN (?)",
+			db.Model(&models.LogPenyakitTanaman{}).
+				Select("MAX(created_at)").
+				Where("tanaman_id = log_penyakit_tanaman.tanaman_id").
+				Group("tanaman_id"),
+		).
+		Count(&tanamanSakit).
+		Error; err != nil {
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count tanaman sakit", err.Error())
 		return
 	}
@@ -75,24 +78,24 @@ func CountSiapPanen(c *gin.Context) {
 	var siapPanen int64
 	currentTime := time.Now()
 	// Subquery untuk mendapatkan fase buah terbaru per tanaman
-    subQuery := db.Model(&models.FaseBuah{}).
-        Select("tanaman_id, MAX(created_at) as latest_created_at").
-        Group("tanaman_id")
+	subQuery := db.Model(&models.FaseBuah{}).
+		Select("tanaman_id, MAX(created_at) as latest_created_at").
+		Group("tanaman_id")
 
-    // Query utama untuk count fase buah siap panen dari record terbaru
-    if err := db.Model(&models.FaseBuah{}).
-        Joins("INNER JOIN (?) as latest ON fase_buahs.tanaman_id = latest.tanaman_id AND fase_buahs.created_at = latest.latest_created_at", subQuery).
-        Where("fase_buahs.estimasi_panen <= ?", currentTime).
-        Count(&siapPanen).
-        Error; err != nil {
-        utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count tanaman siap panen", err.Error())
-        return
-    }
+	// Query utama untuk count fase buah siap panen dari record terbaru
+	if err := db.Model(&models.FaseBuah{}).
+		Joins("INNER JOIN (?) as latest ON fase_buahs.tanaman_id = latest.tanaman_id AND fase_buahs.created_at = latest.latest_created_at", subQuery).
+		Where("fase_buahs.estimasi_panen <= ?", currentTime).
+		Count(&siapPanen).
+		Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count tanaman siap panen", err.Error())
+		return
+	}
 
 	if siapPanen == 0 {
-        utils.SuccessResponse(c, http.StatusOK, "No tanaman siap panen", siapPanen)
-        return
-    }
+		utils.SuccessResponse(c, http.StatusOK, "No tanaman siap panen", siapPanen)
+		return
+	}
 
-    utils.SuccessResponse(c, http.StatusOK, "Count tanaman siap panen", siapPanen)
+	utils.SuccessResponse(c, http.StatusOK, "Count tanaman siap panen", siapPanen)
 }
