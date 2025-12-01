@@ -44,18 +44,19 @@ func CountTanamanDiseased(c *gin.Context) {
 
 	var tanamanSakit int64
 
-	// Gunakan DISTINCT untuk count tanaman_id unik
-	if err := db.Model(&models.LogPenyakitTanaman{}).
-		Select("DISTINCT tanaman_id").
-		Where("kondisi IN ?", []string{"Parah", "Sedang", "Ringan"}).
-		Where("created_at IN (?)",
-			db.Model(&models.LogPenyakitTanaman{}).
-				Select("MAX(created_at)").
-				Where("tanaman_id = log_penyakit_tanaman.tanaman_id").
-				Group("tanaman_id"),
-		).
+	// Subquery: created_at terbaru per tanaman
+	subQuery := db.Model(&models.LogPenyakitTanaman{}).
+		Select("tanaman_id, MAX(created_at) AS latest_created_at").
+		Group("tanaman_id")
+
+	// Query utama: join log terbaru + filter kondisi sakit
+	if err := db.
+		Table("(?) AS logs", db.Model(&models.LogPenyakitTanaman{})).
+		Joins("JOIN (?) AS latest ON logs.tanaman_id = latest.tanaman_id AND logs.created_at = latest.latest_created_at", subQuery).
+		Where("logs.kondisi IN ?", []string{"Parah", "Sedang", "Ringan"}).
 		Count(&tanamanSakit).
 		Error; err != nil {
+
 		utils.ErrorResponse(c, http.StatusInternalServerError, "Failed to count tanaman sakit", err.Error())
 		return
 	}
@@ -67,6 +68,7 @@ func CountTanamanDiseased(c *gin.Context) {
 
 	utils.SuccessResponse(c, http.StatusOK, "Count tanaman sakit data", tanamanSakit)
 }
+
 
 func CountSiapPanen(c *gin.Context) {
 	// connect to db
