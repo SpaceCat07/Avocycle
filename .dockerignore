@@ -1,0 +1,12 @@
+.git
+.gitignore
+.env
+.env.example
+*.md
+.github
+.vscode
+*.log
+tmp/
+vendor/
+coverage.out
+avocycle

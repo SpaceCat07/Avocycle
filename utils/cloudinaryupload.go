@@ -6,6 +6,7 @@ import (
 	"mime/multipart"
 	"os"
 	"path/filepath"
+    "strings" // Pastikan package strings diimpor
 	"time"
 
     "github.com/cloudinary/cloudinary-go/v2"
@@ -27,7 +28,7 @@ func AsyncUploadOptionalImage(file *multipart.FileHeader, folder string) (string
     if file.Size > maxUploadSize {
         return "", "", fmt.Errorf("ukuran file maksimal %d MB", maxUploadSize/(1<<20))
     }
-    ext := filepath.Ext(file.Filename)
+    ext := strings.ToLower(filepath.Ext(file.Filename))
     if !allowedExts[ext] {
         return "", "", fmt.Errorf("format file tidak didukung")
     }

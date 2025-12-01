@@ -11,6 +11,42 @@ import (
 	"gorm.io/gorm"
 )
 
+// PenyakitTanaman swagger model
+// @Description Model untuk data penyakit tanaman
+type SwaggerPenyakitTanaman struct {
+	ID           uint   `json:"id"`
+	NamaPenyakit string `json:"nama_penyakit"`
+	Deskripsi    string `json:"deskripsi"`
+	CreatedAt    string `json:"created_at,omitempty"`
+	UpdatedAt    string `json:"updated_at,omitempty"`
+}
+
+// LogPenyakitTanaman swagger model
+// @Description Log penyakit terkait tanaman
+type SwaggerLogPenyakitTanaman struct {
+	ID              uint   `json:"id"`
+	Kondisi         string `json:"kondisi"`
+	Catatan         string `json:"catatan"`
+	Foto            string `json:"foto,omitempty"`
+	FotoLogPenyakitID string `json:"foto_log_penyakit_id,omitempty"`
+	SaranPerawatan  string `json:"saran_perawatan"`
+	TanamanID       uint   `json:"tanaman_id"`
+	PenyakitID      uint   `json:"penyakit_id"`
+	CreatedAt       string `json:"created_at,omitempty"`
+	UpdatedAt       string `json:"updated_at,omitempty"`
+}
+
+// GetAllLogPenyakit godoc
+// @Summary Get all log penyakit tanaman
+// @Description Mendapatkan daftar semua log penyakit tanaman dengan pagination
+// @Tags LogPenyakitTanaman
+// @Accept json
+// @Produce json
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(10)
+// @Success 200 {object} utils.Response{data=[]SwaggerLogPenyakitTanaman,meta=utils.Pagination} "Berhasil mengambil data"
+// @Failure 500 {object} utils.Response "Gagal koneksi atau query database"
+// @Router /Log-Penyakit-Tanaman [get]
 func GetAllLogPenyakit(c *gin.Context) {
 	// get pagination parameters
 	page, perPage := utils.GetPagination(c)
@@ -65,6 +101,17 @@ func GetAllLogPenyakit(c *gin.Context) {
 
 }
 
+// GetLogPenyakitById godoc
+// @Summary Get log penyakit tanaman by ID
+// @Description Mendapatkan detail log penyakit tanaman berdasarkan ID
+// @Tags LogPenyakitTanaman
+// @Accept json
+// @Produce json
+// @Param id path int true "ID Log Penyakit Tanaman"
+// @Success 200 {object} utils.Response{data=SwaggerLogPenyakitTanaman} "Detail ditemukan"
+// @Failure 404 {object} utils.Response "Data tidak ditemukan"
+// @Failure 500 {object} utils.Response "Gagal retrieve data"
+// @Router /Log-Penyakit-Tanaman/{id} [get]
 func GetLogPenyakitById(c *gin.Context) {
 	id := c.Param("id")
 
@@ -87,6 +134,19 @@ func GetLogPenyakitById(c *gin.Context) {
 	utils.SuccessResponse(c, http.StatusOK, "Detail log penyakit tanaman", logPenyakitTanaman)
 }
 
+// GetLogPenyakitByTanamanId godoc
+// @Summary Get log penyakit tanaman by Tanaman ID
+// @Description Mendapatkan semua log penyakit berdasarkan tanaman_id dengan pagination
+// @Tags LogPenyakitTanaman
+// @Accept json
+// @Produce json
+// @Param id_tanaman path int true "ID Tanaman"
+// @Param page query int false "Page number" default(1)
+// @Param per_page query int false "Items per page" default(10)
+// @Success 200 {object} utils.Response{data=[]SwaggerLogPenyakitTanaman,meta=utils.Pagination} "Berhasil mengambil data"
+// @Failure 404 {object} utils.Response "Data tidak ditemukan"
+// @Failure 500 {object} utils.Response "Gagal koneksi atau query database"
+// @Router /Log-Penyakit-Tanaman/Tanaman/{id_tanaman} [get]
 func GetLogPenyakitByTanamanId(c *gin.Context) {
 	idTanaman := c.Param("id_tanaman")
 
