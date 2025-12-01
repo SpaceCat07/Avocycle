@@ -79,6 +79,7 @@ func InitRoutes() *gin.Engine {
 			petaniRoutes.GET("/count-all-tanaman", controllers.CountAllPohon)
 			petaniRoutes.GET("/count-tanaman-sakit", controllers.CountTanamanDiseased)
 			petaniRoutes.GET("/count-tanaman-siap-panen", controllers.CountSiapPanen)
+			petaniRoutes.GET("/count-tanaman-tiap-minggu", controllers.GetWeeklyPanenLast6Weeks)
       
 			// CRUD Fase Bunga
 			petaniRoutes.POST("/fase-bunga", controllers.CreateFaseBunga)
