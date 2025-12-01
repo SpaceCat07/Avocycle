@@ -2,12 +2,13 @@ package controllers
 
 import (
 	"Avocycle/config"
-	"Avocycle/models"
-	"Avocycle/utils"
+	// "Avocycle/models"
+	// "Avocycle/utils"
 	"net/http"
+	// "net/url"
 	"os"
 
-	"github.com/danilopolani/gocialite/structs"
+	// "github.com/danilopolani/gocialite/structs"
 	"github.com/gin-gonic/gin"
 )
 
@@ -26,43 +27,41 @@ import (
 // @Success 302 {string} string "Redirect to Google OAuth"
 // @Router /auth/google/pembeli [get]
 func RedirectHandlerPembeli(c *gin.Context) {
-	// Retrieve provider from route
-	provider := c.Param("provider")
+    // provider := c.Param("provider")
+    provider := "google"
 
-	// In this case we use a map to store our secrets, but you can use dotenv or your framework configuration
-	// for example, in revel you could use revel.Config.StringDefault(provider + "_clientID", "") etc.
-	providerSecrets := map[string]map[string]string{
-		"google": {
-			"clientID":     os.Getenv("CLIENT_ID_GOOGLE"),
-			"clientSecret": os.Getenv("CLIENT_SECRET_GOOGLE"),
-			"redirectURL":  os.Getenv("AUTH_REDIRECT_URL") + "/google/callback/pembeli",
-		},
-	}
+    providerSecrets := map[string]map[string]string{
+        "google": {
+            "clientID":     os.Getenv("CLIENT_ID_GOOGLE"),
+            "clientSecret": os.Getenv("CLIENT_SECRET_GOOGLE"),
+            "redirectURL":  os.Getenv("AUTH_REDIRECT_URL") + "/google/callback/pembeli",
+        },
+    }
 
-	providerScopes := map[string][]string{
-		"google": []string{},
-	}
+    providerScopes := map[string][]string{
+        "google": {},
+    }
 
-	providerData := providerSecrets[provider]
-	actualScopes := providerScopes[provider]
-	authURL, err := config.Gocial.New().
-		Driver(provider).
-		Scopes(actualScopes).
-		Redirect(
-			providerData["clientID"],
-			providerData["clientSecret"],
-			providerData["redirectURL"],
-		)
+    providerData := providerSecrets[provider]
+    actualScopes := providerScopes[provider]
 
-	// Check for errors (usually driver not valid)
-	if err != nil {
-		c.Writer.Write([]byte("Error: " + err.Error()))
-		return
-	}
+    authURL, err := config.Gocial.New().
+        Driver(provider).
+        Scopes(actualScopes).
+        Redirect(
+            providerData["clientID"],
+            providerData["clientSecret"],
+            providerData["redirectURL"],
+        )
 
-	// Redirect with authURL
-	c.Redirect(http.StatusFound, authURL)
+    if err != nil {
+        c.Writer.Write([]byte("Error: " + err.Error()))
+        return
+    }
+
+    c.Redirect(http.StatusFound, authURL)
 }
+
 
 // CallbackHandlerPembeli godoc
 // @Summary Google OAuth Callback (Pembeli)
@@ -99,67 +98,48 @@ func RedirectHandlerPembeli(c *gin.Context) {
 // @Description    .    }
 // @Description     }
 func CallbackHandlerPembeli(c *gin.Context) {
-	// Retrieve query params for state and code
-	state := c.Query("state")
-	code := c.Query("code")
-	provider := c.Param("provider")
-
-	// Handle callback and check for errors
-	user, token, err := config.Gocial.Handle(state, code)
-	if err != nil {
-		c.Writer.Write([]byte("Error: " + err.Error()))
-		return
-	}
-
-	// create or register new user 
-	newUser := getOrRegisterUserPembeli(provider, user)
-
-	// create jwt token
-	jwtToken, err := utils.GenerateJWT(&newUser)
-	if err != nil {
-		c.JSON(http.StatusInternalServerError, gin.H{"error" : "Failed to Generate token"})
-		return
-	}
-
-	// // Print in terminal user information
-	// fmt.Printf("%#v", token)
-	// fmt.Printf("%#v", user)
-	// fmt.Printf("%#v", provider)
-
-	// // If no errors, show provider name
-	// c.Writer.Write([]byte("Hi, " + user.FullName))
-	c.JSON(http.StatusOK, gin.H{
-		"success" : true,
-		"action" : "google auth pembeli",
-		"data" : newUser,
-		"token_google" : token,
-		"jwtToken" : jwtToken,
-	})
+    handleGoogleCallback(c, "Pembeli")
 }
 
-func getOrRegisterUserPembeli(provider string, user *structs.User) models.User {
-	var userData models.User
+// func getOrRegisterUserPembeli(provider string, user *structs.User) models.User {
+// 	var userData models.User
 
-	// Get database connection
-    db, err := config.DbConnect()
-    if err != nil {
-        panic("Failed to connect database")
-    }
+// 	// Get database connection
+// 	db, err := config.DbConnect()
+// 	if err != nil {
+// 		panic("Failed to connect database")
+// 	}
 
-	db.Where("auth_provider = ? AND provider_id = ?", provider, user.ID).First(&userData)
+// 	db.Where("auth_provider = ? AND provider_id = ?", provider, user.ID).First(&userData)
 
-	if userData.ID == 0{
-		newUser := models.User{
-			FullName: user.FullName,
-			Email: user.Email,
-			AuthProvider: string("Google"),
-			ProviderID: user.ID,
-			Role: string("Pembeli"),
-		}
+// 	if userData.ID == 0 {
+// 		newUser := models.User{
+// 			FullName:     user.FullName,
+// 			Email:        user.Email,
+// 			AuthProvider: "Google",
+// 			ProviderID:   user.ID,
+// 			Role:         "Pembeli",
+// 		}
 
-		db.Create(&newUser)
-		return newUser
-	} else {
-		return userData
-	}
-}
+// 		db.Create(&newUser)
+// 		return newUser
+// 	}
+
+// 	return userData
+// }
+
+// helper kalau error → redirect ke FE dengan ?error=...
+// func redirectFrontendWithError(c *gin.Context, errCode string) {
+// 	frontendCallback := os.Getenv("FRONTEND_GOOGLE_CALLBACK_URL")
+// 	if frontendCallback == "" {
+// 		c.JSON(http.StatusBadRequest, gin.H{"error": errCode})
+// 		return
+// 	}
+
+// 	u, _ := url.Parse(frontendCallback)
+// 	q := u.Query()
+// 	q.Set("error", errCode)
+// 	u.RawQuery = q.Encode()
+
+// 	c.Redirect(http.StatusTemporaryRedirect, u.String())
+// }

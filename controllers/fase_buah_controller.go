@@ -164,7 +164,6 @@ func CreateFaseBuah(c *gin.Context) {
 		TanggalCover  string `json:"tanggal_cover" binding:"required"` // YYYY-MM-DD
 		JumlahCover   int    `json:"jumlah_cover" binding:"required"`
 		WarnaLabel    string `json:"warna_label,omitempty"`
-		EstimasiPanen string `json:"estimasi_panen" binding:"required"` // YYYY-MM-DD
 		TanamanID     uint   `json:"tanaman_id" binding:"required"`
 	}
 
@@ -199,13 +198,6 @@ func CreateFaseBuah(c *gin.Context) {
 		return
 	}
 
-	// Validasi EstimasiPanen
-	parsedEstimasiPanen, err := parseAndValidateEstimasiPanen(input.EstimasiPanen)
-	if err != nil {
-		utils.ErrorResponse(c, http.StatusBadRequest, "estimasi_panen tidak valid", err.Error())
-		return
-	}
-
 	// Validasi JumlahCover (tidak negatif)
 	if input.JumlahCover < 0 {
 		utils.ErrorResponse(c, http.StatusBadRequest, "jumlah_cover tidak boleh negatif", nil)
@@ -218,6 +210,15 @@ func CreateFaseBuah(c *gin.Context) {
 		return
 	}
 
+	var tanaman models.Tanaman
+	if err := db.First(&tanaman, input.TanamanID).Error; err != nil {
+		utils.ErrorResponse(c, http.StatusInternalServerError, "Gagal ambil data tanaman", err.Error())
+		return
+	}
+
+	estimasiPanen := parsedTanggalCover.AddDate(0, 0, tanaman.MasaProduksi)
+
+
 	// Buat FaseBuah
 	faseBuah := models.FaseBuah{
 		MingguKe:      input.MingguKe,
@@ -225,7 +226,7 @@ func CreateFaseBuah(c *gin.Context) {
 		TanggalCover:  &parsedTanggalCover,
 		JumlahCover:   input.JumlahCover,
 		WarnaLabel:    input.WarnaLabel,
-		EstimasiPanen: &parsedEstimasiPanen,
+		EstimasiPanen: &estimasiPanen,
 		TanamanID:     input.TanamanID,
 	}
 
