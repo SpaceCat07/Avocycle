@@ -1,12 +1,13 @@
 package routes
 
 import (
-	_ "Avocycle/docs"
-	ginSwagger "github.com/swaggo/gin-swagger"
-	swaggerFiles "github.com/swaggo/files"
 	"Avocycle/controllers"
+	_ "Avocycle/docs"
 	"Avocycle/middleware"
 	"time"
+
+	swaggerFiles "github.com/swaggo/files"
+	ginSwagger "github.com/swaggo/gin-swagger"
 
 	"github.com/gin-contrib/cors"
 	"github.com/gin-gonic/gin"
@@ -18,12 +19,12 @@ func InitRoutes() *gin.Engine {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// setting cors
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:  	  []string{"https://localhost:5173"},
+		AllowOrigins:     []string{"http://localhost:5173"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
-        AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
-        ExposeHeaders:    []string{"Content-Length"},
-        AllowCredentials: true,
-        MaxAge:           12 * time.Hour,
+		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
+		ExposeHeaders:    []string{"Content-Length"},
+		AllowCredentials: true,
+		MaxAge:           12 * time.Hour,
 	}))
 
 	// url api v1
@@ -33,26 +34,30 @@ func InitRoutes() *gin.Engine {
 		api.POST("register/pembeli", controllers.ManualRegisterPembeli)
 		api.POST("login", controllers.ManualLogin)
 
-		api.GET("auth/:provider/petani", controllers.RedirectHandlerPetani)
-		api.GET("auth/:provider/callback/petani", controllers.CallbackHandlerPetani)
+    	// Pembeli
+    	api.GET("auth/google/pembeli", controllers.RedirectHandlerPembeli)
+    	api.GET("auth/:provider/callback/pembeli", controllers.CallbackHandlerPembeli)
+    	api.POST("auth/google/complete/pembeli", controllers.CompleteGooglePembeli)
 
-		api.GET("auth/:provider/pembeli", controllers.RedirectHandlerPembeli)
-		api.GET("auth/:provider/callback/pembeli", controllers.CallbackHandlerPembeli)
+    	// Petani
+    	api.GET("auth/google/petani", controllers.RedirectHandlerPetani)
+    	api.GET("auth/:provider/callback/petani", controllers.CallbackHandlerPetani)
+    	api.POST("auth/google/complete/petani", controllers.CompleteGooglePetani)
 
 		// CRUD Kebun - Tambahan RoleMiddleware untuk Kebun
 		api.POST("/kebun", middleware.RoleMiddleware("Petani", "Admin"), controllers.CreateKebun) //1
 		api.GET("/kebun", controllers.GetAllKebun)
 		api.GET("/kebun/:id", controllers.GetKebunByID)
-		api.PUT("/kebun/:id", middleware.RoleMiddleware("Petani", "Admin"), controllers.UpdateKebun) //2
+		api.PUT("/kebun/:id", middleware.RoleMiddleware("Petani", "Admin"), controllers.UpdateKebun)    //2
 		api.DELETE("/kebun/:id", middleware.RoleMiddleware("Petani", "Admin"), controllers.DeleteKebun) //3
 
 		// CRUD Tanaman
-		api.POST("/tanaman", middleware.RoleMiddleware("Petani", "Admin"),controllers.CreateTanaman)
+		api.POST("/tanaman", middleware.RoleMiddleware("Petani", "Admin"), controllers.CreateTanaman)
 		api.GET("/tanaman", controllers.GetAllTanaman)
 		api.GET("/tanaman/:id", controllers.GetTanamanByID)
 		api.GET("/tanaman/by-kebun/:id_kebun", controllers.GetTanamanByKebunID)
-		api.PUT("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.UpdateTanaman)
-		api.DELETE("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"),controllers.DeleteTanaman)
+		api.PUT("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"), controllers.UpdateTanaman)
+		api.DELETE("/tanaman/:id", middleware.RoleMiddleware("Petani", "Admin"), controllers.DeleteTanaman)
 
 		// log penyakit tanaman
 		api.GET("/Log-Penyakit-Tanaman", controllers.GetAllLogPenyakit)
@@ -63,12 +68,12 @@ func InitRoutes() *gin.Engine {
 		petaniRoutes.Use(middleware.RoleMiddleware("Petani"))
 		{
 			// CRUD Buah
-            petaniRoutes.POST("/buah", controllers.CreateBuah)
-            petaniRoutes.GET("/buah", controllers.GetAllBuah)
-            petaniRoutes.GET("/buah/:id", controllers.GetBuahByID)
+			petaniRoutes.POST("/buah", controllers.CreateBuah)
+			petaniRoutes.GET("/buah", controllers.GetAllBuah)
+			petaniRoutes.GET("/buah/:id", controllers.GetBuahByID)
 			petaniRoutes.GET("/buah/by-tanaman/:id_kebun", controllers.GetBuahByKebun)
-            petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
-            petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
+			petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
+			petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
 
 			// CRUD Fase Bunga
 			petaniRoutes.POST("/fase-bunga", controllers.CreateFaseBunga)
@@ -118,7 +123,7 @@ func InitRoutes() *gin.Engine {
 
 	// cek ketersediaan api
 	r.GET("/oke", func(ctx *gin.Context) {
-		ctx.JSON(200, gin.H{"message" : "Oke"})
+		ctx.JSON(200, gin.H{"message": "Oke"})
 	})
 
 	return r
