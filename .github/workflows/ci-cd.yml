@@ -167,13 +167,15 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT || '22' }}
+          timeout: 60s
+          command_timeout: 20m
           script: |
             cd /var/www/avocycle-app1
-            git pull origin main
-            docker-compose pull
-            docker-compose down
-            docker-compose up -d --build
-            docker system prune -f
+            sudo git pull origin main
+            sudo docker-compose pull
+            sudo docker-compose down
+            sudo docker-compose up -d --build
+            sudo docker system prune -f
 
       - name: Deployment Status
         if: always()
