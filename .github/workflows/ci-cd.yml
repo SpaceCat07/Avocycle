@@ -151,7 +151,7 @@ jobs:
           key: ${{ secrets.SSH_PRIVATE_KEY }}
           port: ${{ secrets.SERVER_PORT }}
           script: |
-            cd /var/www/avocycle
+            cd /var/www/avocycle-app1
             git pull origin main
             docker-compose pull
             docker-compose down
@@ -161,4 +161,4 @@ jobs:
       - name: Notify deployment
         if: success()
         run: |
-          echo "Deployment successful to http://avocycle.my.id!"
+          echo "Deployment successful to http://avocycle.my.id:8081!"
