@@ -107,3 +107,56 @@ func RefreshJWT(oldTokenString string) (string, error) {
     token := jwt.NewWithClaims(jwt.SigningMethodHS256, newClaims)
     return token.SignedString(jwtSecretKey)
 }
+
+// ==== Temp token khusus flow Google ====
+
+// TempGoogleClaims dipakai untuk menyimpan data sementara user Google
+type TempGoogleClaims struct {
+    Provider   string `json:"provider"`
+    ProviderID string `json:"provider_id"`
+    Email      string `json:"email"`
+    FullName   string `json:"full_name"`
+    jwt.RegisteredClaims
+}
+
+// GenerateTempGoogleToken membuat JWT jangka pendek untuk carry data Google user ke FE
+func GenerateTempGoogleToken(provider, providerID, email, fullName string) (string, error) {
+    expirationTime := time.Now().Add(10 * time.Minute)
+
+    claims := &TempGoogleClaims{
+        Provider:   provider,
+        ProviderID: providerID,
+        Email:      email,
+        FullName:   fullName,
+        RegisteredClaims: jwt.RegisteredClaims{
+            ExpiresAt: jwt.NewNumericDate(expirationTime),
+            IssuedAt:  jwt.NewNumericDate(time.Now()),
+            NotBefore: jwt.NewNumericDate(time.Now()),
+            Issuer:    "Avocycle-Google-Temp",
+            Subject:   email,
+        },
+    }
+
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    return token.SignedString(jwtSecretKey)
+}
+
+// ParseTempGoogleToken mem-parse tempToken dari FE
+func ParseTempGoogleToken(tokenString string) (*TempGoogleClaims, error) {
+    token, err := jwt.ParseWithClaims(tokenString, &TempGoogleClaims{}, func(token *jwt.Token) (interface{}, error) {
+        if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+            return nil, errors.New("invalid signing method")
+        }
+        return jwtSecretKey, nil
+    })
+
+    if err != nil {
+        return nil, err
+    }
+
+    if claims, ok := token.Claims.(*TempGoogleClaims); ok && token.Valid {
+        return claims, nil
+    }
+
+    return nil, errors.New("invalid temp token")
+}
