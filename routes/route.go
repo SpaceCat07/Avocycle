@@ -34,15 +34,15 @@ func InitRoutes() *gin.Engine {
 		api.POST("register/pembeli", controllers.ManualRegisterPembeli)
 		api.POST("login", controllers.ManualLogin)
 
-    	// Pembeli
-    	api.GET("auth/google/pembeli", controllers.RedirectHandlerPembeli)
-    	api.GET("auth/:provider/callback/pembeli", controllers.CallbackHandlerPembeli)
-    	api.POST("auth/google/complete/pembeli", controllers.CompleteGooglePembeli)
+		// Pembeli
+		api.GET("auth/google/pembeli", controllers.RedirectHandlerPembeli)
+		api.GET("auth/:provider/callback/pembeli", controllers.CallbackHandlerPembeli)
+		api.POST("auth/google/complete/pembeli", controllers.CompleteGooglePembeli)
 
-    	// Petani
-    	api.GET("auth/google/petani", controllers.RedirectHandlerPetani)
-    	api.GET("auth/:provider/callback/petani", controllers.CallbackHandlerPetani)
-    	api.POST("auth/google/complete/petani", controllers.CompleteGooglePetani)
+		// Petani
+		api.GET("auth/google/petani", controllers.RedirectHandlerPetani)
+		api.GET("auth/:provider/callback/petani", controllers.CallbackHandlerPetani)
+		api.POST("auth/google/complete/petani", controllers.CompleteGooglePetani)
 
 		// CRUD Kebun - Tambahan RoleMiddleware untuk Kebun
 		api.POST("/kebun", middleware.RoleMiddleware("Petani", "Admin"), controllers.CreateKebun) //1
@@ -96,7 +96,7 @@ func InitRoutes() *gin.Engine {
 			petaniRoutes.GET("/count-tanaman-sakit", controllers.CountTanamanDiseased)
 			petaniRoutes.GET("/count-tanaman-siap-panen", controllers.CountSiapPanen)
 			petaniRoutes.GET("/count-tanaman-tiap-minggu", controllers.GetWeeklyPanenLast6Weeks)
-      
+
 			// CRUD Fase Bunga
 			petaniRoutes.POST("/fase-bunga", controllers.CreateFaseBunga)
 			petaniRoutes.PUT("/fase-bunga/:id", controllers.UpdateFaseBunga)
