@@ -64,16 +64,32 @@ func InitRoutes() *gin.Engine {
 		api.GET("/Log-Penyakit-Tanaman/:id", controllers.GetLogPenyakitById)
 		api.GET("/Log-Penyakit-Tanaman/Tanaman/:id_tanaman", controllers.GetLogPenyakitByTanamanId)
 
+		// get fase bunga
+		api.GET("/fase-bunga", controllers.GetAllFaseBunga)
+		api.GET("/fase-bunga/:id", controllers.GetFaseBungaByID)
+		api.GET("/fase-bunga/tanaman/:tanaman_id", controllers.GetFaseBungaByTanaman)
+
+		// get fase berbuah
+		api.GET("/fase-berbuah", controllers.GetAllFaseBuah)
+		api.GET("/fase-berbuah/:id", controllers.GetFaseBuahByID)
+		api.GET("/fase-berbuah/tanaman/:tanaman_id", controllers.GetFaseBuahByTanaman)
+
+		// get fase panen
+		api.GET("/fase-panen", controllers.GetAllFasePanen)
+		api.GET("/fase-panen/:id", controllers.GetFasePanenByID)
+		api.GET("/fase-panen/tanaman/:tanaman_id", controllers.GetFasePanenByTanaman)
+		
+
 		petaniRoutes := api.Group("/petani")
 		petaniRoutes.Use(middleware.RoleMiddleware("Petani"))
 		{
 			// CRUD Buah
-      petaniRoutes.POST("/buah", controllers.CreateBuah)
-      petaniRoutes.GET("/buah", controllers.GetAllBuah)
-      petaniRoutes.GET("/buah/:id", controllers.GetBuahByID)
-      petaniRoutes.GET("/buah/by-tanaman/:id_kebun", controllers.GetBuahByKebun)
-      petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
-      petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
+		petaniRoutes.POST("/buah", controllers.CreateBuah)
+		petaniRoutes.GET("/buah", controllers.GetAllBuah)
+		petaniRoutes.GET("/buah/:id", controllers.GetBuahByID)
+		petaniRoutes.GET("/buah/by-tanaman/:id_kebun", controllers.GetBuahByKebun)
+		petaniRoutes.PUT("/buah/:id", controllers.UpdateBuah)
+		petaniRoutes.DELETE("/buah/:id", controllers.DeleteBuah)
 
 			// statistics
 			petaniRoutes.GET("/count-all-tanaman", controllers.CountAllPohon)
@@ -83,27 +99,18 @@ func InitRoutes() *gin.Engine {
       
 			// CRUD Fase Bunga
 			petaniRoutes.POST("/fase-bunga", controllers.CreateFaseBunga)
-			petaniRoutes.GET("/fase-bunga", controllers.GetAllFaseBunga)
-			petaniRoutes.GET("/fase-bunga/:id", controllers.GetFaseBungaByID)
 			petaniRoutes.PUT("/fase-bunga/:id", controllers.UpdateFaseBunga)
 			petaniRoutes.DELETE("/fase-bunga/:id", controllers.DeleteFaseBunga)
-			petaniRoutes.GET("/fase-bunga/tanaman/:tanaman_id", controllers.GetFaseBungaByTanaman)
 
 			// CRUD Fase Berbuah
 			petaniRoutes.POST("/fase-berbuah", controllers.CreateFaseBuah)
-			petaniRoutes.GET("/fase-berbuah", controllers.GetAllFaseBuah)
-			petaniRoutes.GET("/fase-berbuah/:id", controllers.GetFaseBuahByID)
 			petaniRoutes.PUT("/fase-berbuah/:id", controllers.UpdateFaseBuah)
 			petaniRoutes.DELETE("/fase-berbuah/:id", controllers.DeleteFaseBuah)
-			petaniRoutes.GET("/fase-berbuah/tanaman/:tanaman_id", controllers.GetFaseBuahByTanaman)
 
 			// CRUD Fase Panen
 			petaniRoutes.POST("/fase-panen", controllers.CreateFasePanen)
-			petaniRoutes.GET("/fase-panen", controllers.GetAllFasePanen)
-			petaniRoutes.GET("/fase-panen/:id", controllers.GetFasePanenByID)
 			petaniRoutes.PUT("/fase-panen/:id", controllers.UpdateFasePanen)
 			petaniRoutes.DELETE("/fase-panen/:id", controllers.DeleteFasePanen)
-			petaniRoutes.GET("/fase-panen/tanaman/:tanaman_id", controllers.GetFasePanenByTanaman)
 		}
 
 		petaniAdminRoutes := api.Group("/petamin")
