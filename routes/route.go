@@ -19,7 +19,7 @@ func InitRoutes() *gin.Engine {
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// setting cors
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://avocycle.shop/"},
+		AllowOrigins:     []string{"https://avocycle.shop"},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
