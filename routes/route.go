@@ -29,6 +29,22 @@ func InitRoutes() *gin.Engine {
 		MaxAge:           12 * time.Hour,
 	}))
 
+	// Additional CORS headers middleware to ensure headers are always present
+	r.Use(func(c *gin.Context) {
+		c.Header("Access-Control-Allow-Origin", "https://avocycle.shop")
+		c.Header("Access-Control-Allow-Methods", "GET, POST, PUT, PATCH, DELETE, OPTIONS")
+		c.Header("Access-Control-Allow-Headers", "Origin, Content-Type, Accept, Authorization")
+		c.Header("Access-Control-Allow-Credentials", "true")
+		c.Header("Vary", "Origin")
+
+		if c.Request.Method == "OPTIONS" {
+			c.AbortWithStatus(204)
+			return
+		}
+
+		c.Next()
+	})
+
 	// swagger
 	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
