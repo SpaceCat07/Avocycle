@@ -17,11 +17,7 @@ func InitRoutes() *gin.Engine {
 
 	// ========== FINAL CORS CONFIG ==========
 	r.Use(cors.New(cors.Config{
-		AllowOrigins: []string{
-			"https://avocycle.shop",
-			"https://www.avocycle.shop",
-			"http://localhost:3000",
-		},
+		AllowAllOrigins: true,
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
