@@ -16,16 +16,21 @@ import (
 func InitRoutes() *gin.Engine {
 	r := gin.Default()
 
-	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 	// setting cors
 	r.Use(cors.New(cors.Config{
-		AllowOrigins:     []string{"https://avocycle.shop"},
+		AllowOrigins:	  []string{
+							    "https://avocycle.shop",
+							    "https://www.avocycle.shop",
+							    "http://localhost:3000", // development
+							},
 		AllowMethods:     []string{"GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"},
 		AllowHeaders:     []string{"Origin", "Content-Type", "Accept", "Authorization"},
 		ExposeHeaders:    []string{"Content-Length"},
 		AllowCredentials: true,
 		MaxAge:           12 * time.Hour,
 	}))
+
+	r.GET("/swagger/*any", ginSwagger.WrapHandler(swaggerFiles.Handler))
 
 	// url api v1
 	api := r.Group("/api/v1")
