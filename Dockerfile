@@ -1,20 +1,19 @@
 # Build stage
-FROM golang:1.25.1-alpine AS builder
-
-# Install C compiler (CGO dependencies)
-RUN apk add --no-cache git gcc musl-dev
+FROM golang:1.24.4-alpine AS builder
 
 WORKDIR /app
 
-# Copy dependencies
+# Copy go mod files
 COPY go.mod go.sum ./
+
+# Download dependencies
 RUN go mod download
 
-# Copy all source code
+# Copy source code
 COPY . .
 
-# Build main application (CGO enabled)
-RUN CGO_ENABLED=1 GOOS=linux go build -a -installsuffix cgo -o main .
+# Build the application
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o main .
 
 # Final stage
 FROM alpine:latest
@@ -23,9 +22,11 @@ RUN apk --no-cache add ca-certificates tzdata
 
 WORKDIR /root/
 
+# Copy binary from builder
 COPY --from=builder /app/main .
-# COPY --from=builder /app/seeder .
 
+# Expose port
 EXPOSE 2005
 
+# Run the application
 CMD ["./main"]
