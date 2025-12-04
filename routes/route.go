@@ -77,8 +77,8 @@ func InitRoutes() *gin.Engine {
 
 		// Fase Berbuah
 		api.GET("/fase-berbuah", controllers.GetAllFaseBuah)
-		api.GET("/fase-berbuah/:id", controllers.GetFaseBerbuahByID)
-		api.GET("/fase-berbuah/tanaman/:tanaman_id", controllers.GetFaseBerbuahByTanaman)
+		api.GET("/fase-berbuah/:id", controllers.GetFaseBuahByID)
+		api.GET("/fase-berbuah/tanaman/:tanaman_id", controllers.GetFaseBuahByTanaman)
 
 		// Fase Panen
 		api.GET("/fase-panen", controllers.GetAllFasePanen)
