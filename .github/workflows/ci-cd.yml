@@ -98,8 +98,12 @@ jobs:
             docker-compose pull app
 
             echo "🏗️ Restarting containers..."
+            # Workaround for docker-compose v1.29.2 KeyError: 'ContainerConfig'
+            # We must stop containers completely before recreating them
+            docker-compose down --remove-orphans
+            
             # Recreate container dengan image baru
-            docker-compose up -d --remove-orphans
+            docker-compose up -d
 
             echo "🧹 Cleaning up unused images..."
             docker image prune -a -f
