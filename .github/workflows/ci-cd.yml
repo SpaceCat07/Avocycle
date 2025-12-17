@@ -85,10 +85,13 @@ jobs:
           timeout: 60s
           command_timeout: 30m
           script: |
+            set -e
             cd /var/www/avocycle-app1 || exit 1
 
-            echo "📥 Pulling latest code..."
-            git pull origin main
+            echo "📥 Fetching latest code..."
+            # Mencegah conflict dengan cara reset hard ke origin/main
+            git fetch --all
+            git reset --hard origin/main
 
             echo "⬇️ Pulling latest images..."
             # Pull image terbaru dari GHCR
