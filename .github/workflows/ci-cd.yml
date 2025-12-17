@@ -14,7 +14,7 @@ permissions:
   packages: write
 
 env:
-  GO_VERSION: '1.24.4'
+  GO_VERSION: '1.23.4'
   REGISTRY: ghcr.io
   IMAGE_NAME: ${{ github.repository }}
 
@@ -90,11 +90,16 @@ jobs:
             echo "📥 Pulling latest code..."
             git pull origin main
 
-            echo "🛑 Stopping containers..."
-            docker-compose down
+            echo "⬇️ Pulling latest images..."
+            # Pull image terbaru dari GHCR
+            docker-compose pull app
 
-            echo "🏗️ Rebuilding & restarting containers..."
-            docker-compose up -d --build
+            echo "🏗️ Restarting containers..."
+            # Recreate container dengan image baru
+            docker-compose up -d --remove-orphans
+
+            echo "🧹 Cleaning up unused images..."
+            docker image prune -a -f
 
             echo "⏳ Waiting for containers..."
             sleep 15
@@ -109,7 +114,8 @@ jobs:
         run: |
           echo "🏥 Checking health..."
           sleep 10
-          curl -f http://avocycle.my.id:8081/ || echo "⚠️ Health check possibly failed."
+          # Port disesuaikan dengan docker-compose.yml (8082)
+          curl -f http://avocycle.my.id:8082/ || echo "⚠️ Health check possibly failed."
 
       - name: Deployment Summary
         if: always()
